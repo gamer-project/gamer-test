@@ -152,6 +152,7 @@ struct Particle_t
    real         *VelY;
    real         *VelZ;
    real         *Time;
+   real         *Type;
 #  ifdef STORE_PAR_ACC
    real         *AccX;
    real         *AccY;
@@ -224,6 +225,7 @@ struct Particle_t
       VelY = NULL;
       VelZ = NULL;
       Time = NULL;
+      Type = NULL;
 #     ifdef STORE_PAR_ACC
       AccX = NULL;
       AccY = NULL;
@@ -356,6 +358,7 @@ struct Particle_t
       VelY = Attribute[PAR_VELY];
       VelZ = Attribute[PAR_VELZ];
       Time = Attribute[PAR_TIME];
+      Type = Attribute[PAR_TYPE];
 #     ifdef STORE_PAR_ACC
       AccX = Attribute[PAR_ACCX];
       AccY = Attribute[PAR_ACCY];
@@ -436,6 +439,7 @@ struct Particle_t
             VelY = Attribute[PAR_VELY];
             VelZ = Attribute[PAR_VELZ];
             Time = Attribute[PAR_TIME];
+            Type = Attribute[PAR_TYPE];
 #           ifdef STORE_PAR_ACC
             AccX = Attribute[PAR_ACCX];
             AccY = Attribute[PAR_ACCY];

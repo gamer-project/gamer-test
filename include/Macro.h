@@ -413,8 +413,8 @@
 #ifdef PARTICLE
 
 // number of built-in particle attributes
-// (1) mass, position*3, velocity*3, and time
-#  define PAR_NATT_BUILTIN0   8
+// (1) mass, position*3, velocity*3, time, and type
+#  define PAR_NATT_BUILTIN0   9
 
 // acceleration*3 when STORE_PAR_ACC is adopted
 # ifdef STORE_PAR_ACC
@@ -458,6 +458,7 @@
 #  define  PAR_VELX           4
 #  define  PAR_VELY           5
 #  define  PAR_VELZ           6
+#  define  PAR_TYPE           7
 
 // always put acceleration and time at the END of the particle attribute list
 // --> make it easier to discard them when storing data on disk (see Output_DumpData_Total(_HDF5).cpp)
@@ -478,6 +479,11 @@
 # else
 #  define _TOTAL_DENS         ( 1L << (NCOMP_TOTAL+NDERIVE+2) )
 # endif
+
+// particle type macros
+
+#  define  PTYPE_MASSIVE      0
+#  define  PTYPE_TRACER       1
 
 #else // #ifdef PARTICLE
 
