@@ -119,6 +119,7 @@ void Par_MassAssignment( const long *ParList, const long NPar, const ParInterp_t
 // 2. set up attribute arrays, copy particle position since they might be modified during the position prediction
    real *Mass   = NULL;
    real *Pos[3] = { NULL, NULL, NULL };
+   real *PType   = NULL;
    long  ParID, Idx;
 
    if ( UseInputMassPos )
@@ -127,6 +128,7 @@ void Par_MassAssignment( const long *ParList, const long NPar, const ParInterp_t
       Pos[0] = InputMassPos[PAR_POSX];
       Pos[1] = InputMassPos[PAR_POSY];
       Pos[2] = InputMassPos[PAR_POSZ];
+      PType  = InputMassPos[PAR_TYPE];
    }
 
    else
@@ -134,6 +136,8 @@ void Par_MassAssignment( const long *ParList, const long NPar, const ParInterp_t
       Mass = new real [NPar];
 
       for (int d=0; d<3; d++)    Pos[d] = new real [NPar];
+
+      PType = new real [NPar];
 
       for (long p=0; p<NPar; p++)
       {
@@ -143,6 +147,7 @@ void Par_MassAssignment( const long *ParList, const long NPar, const ParInterp_t
          Pos[0][p] = amr->Par->PosX[ParID];
          Pos[1][p] = amr->Par->PosY[ParID];
          Pos[2][p] = amr->Par->PosZ[ParID];
+         PType [p] = amr->Par->Type[ParID];
       }
    }
 
@@ -194,12 +199,16 @@ void Par_MassAssignment( const long *ParList, const long NPar, const ParInterp_t
             Idx = p;
 #           endif
 
-//          4.1.0 discard particles far away from the target region
+//          4.1.0 ignore tracer particles
+            if ( PType[Idx] == PTYPE_TRACER ) 
+               continue;
+
+//          4.1.1 discard particles far away from the target region
             if (  CheckFarAway  &&  FarAwayParticle( Pos[0][Idx], Pos[1][Idx], Pos[2][Idx],
                                                      Periodic, PeriodicSize_Phy, EdgeWithGhostL, EdgeWithGhostR )  )
                continue;
 
-//          4.1.1 calculate the nearest grid index
+//          4.1.2 calculate the nearest grid index
             for (int d=0; d<3; d++)
             {
                idx[d] = (int)FLOOR( ( Pos[d][Idx] - EdgeL[d] )*_dh );
@@ -217,7 +226,7 @@ void Par_MassAssignment( const long *ParList, const long NPar, const ParInterp_t
                }
             }
 
-//          4.1.2 assign mass if within Rho[]
+//          4.1.3 assign mass if within Rho[]
 //          check inactive particles (which have negative mass)
 #           ifdef DEBUG_PARTICLE
             if ( Mass[Idx] < (real)0.0 )
@@ -249,14 +258,18 @@ void Par_MassAssignment( const long *ParList, const long NPar, const ParInterp_t
             Idx = p;
 #           endif
 
-//          4.2.0 discard particles far away from the target region
+//          4.2.0 ignore tracer particles
+            if ( PType[Idx] == PTYPE_TRACER ) 
+               continue;
+
+//          4.2.1 discard particles far away from the target region
             if (  CheckFarAway  &&  FarAwayParticle( Pos[0][Idx], Pos[1][Idx], Pos[2][Idx],
                                                      Periodic, PeriodicSize_Phy, EdgeWithGhostL, EdgeWithGhostR )  )
                continue;
 
             for (int d=0; d<3; d++)
             {
-//             4.2.1 calculate the array index of the left and right cells
+//             4.2.2 calculate the array index of the left and right cells
                dr      [d]  = ( Pos[d][Idx] - EdgeL[d] )*_dh - 0.5;
                idxLR[0][d]  = (int)FLOOR( dr[d] );
                idxLR[1][d]  = idxLR[0][d] + 1;
@@ -277,12 +290,12 @@ void Par_MassAssignment( const long *ParList, const long NPar, const ParInterp_t
                   }
                }
 
-//             4.2.2 get the weighting of the nearby 8 cells
+//             4.2.3 get the weighting of the nearby 8 cells
                Frac[0][d] = 1.0 - dr[d];
                Frac[1][d] =       dr[d];
             } // for (int d=0; d<3; d++)
 
-//          4.2.3 assign mass if within Rho[]
+//          4.2.4 assign mass if within Rho[]
 //          check inactive particles (which have negative mass)
 #           ifdef DEBUG_PARTICLE
             if ( Mass[Idx] < (real)0.0 )
@@ -320,14 +333,18 @@ void Par_MassAssignment( const long *ParList, const long NPar, const ParInterp_t
             Idx = p;
 #           endif
 
-//          4.3.0 discard particles far away from the target region
+//          4.3.0 ignore tracer particles
+            if ( PType[Idx] == PTYPE_TRACER ) 
+               continue;
+
+//          4.3.1 discard particles far away from the target region
             if (  CheckFarAway  &&  FarAwayParticle( Pos[0][Idx], Pos[1][Idx], Pos[2][Idx],
                                                      Periodic, PeriodicSize_Phy, EdgeWithGhostL, EdgeWithGhostR )  )
                continue;
 
             for (int d=0; d<3; d++)
             {
-//             4.3.1 calculate the array index of the left, central, and right cells
+//             4.3.2 calculate the array index of the left, central, and right cells
                dr       [d]  = ( Pos[d][Idx] - EdgeL[d] )*_dh;
                idxLCR[1][d]  = (int)FLOOR( dr[d] );
                idxLCR[0][d]  = idxLCR[1][d] - 1;
@@ -349,13 +366,13 @@ void Par_MassAssignment( const long *ParList, const long NPar, const ParInterp_t
                   }
                }
 
-//             4.3.2 get the weighting of the nearby 27 cells
+//             4.3.3 get the weighting of the nearby 27 cells
                Frac[0][d] = 0.5*SQR( 1.0 - dr[d] );
                Frac[1][d] = 0.5*( 1.0 + 2.0*dr[d] - 2.0*SQR(dr[d]) );
                Frac[2][d] = 0.5*SQR( dr[d] );
             } // for (int d=0; d<3; d++)
 
-//          4.3.3 assign mass if within Rho[]
+//          4.3.4 assign mass if within Rho[]
 //          check inactive particles (which have negative mass)
 #           ifdef DEBUG_PARTICLE
             if ( Mass[Idx] < (real)0.0 )
