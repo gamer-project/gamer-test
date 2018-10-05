@@ -80,8 +80,8 @@ SET_GLOBAL( FieldIdx_t Idx_ParAccZ,       Idx_Undefined );
 #endif
 #ifdef STAR_FORMATION
 SET_GLOBAL( FieldIdx_t Idx_ParCreTime,    Idx_Undefined );
-#endif
 SET_GLOBAL( FieldIdx_t Idx_ParMetalFrac,  Idx_Undefined );
+#endif
 #endif // #ifdef PARTICLE
 
 
