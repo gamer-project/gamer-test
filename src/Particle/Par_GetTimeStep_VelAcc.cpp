@@ -137,7 +137,7 @@ void Par_GetTimeStep_VelAcc( double &dt_vel, double &dt_acc, const int lv )
       Aux_Error( ERROR_INFO, "time-step estimation by particle acceleration is incorrect (dt_acc = %13.7e) !!\n", dt_acc );
 
 
-// multiply by the safty factor
+// multiply by the safety factor
    dt_vel *= DT__PARVEL;
    if ( DT__PARVEL_MAX >= 0.0 )  dt_vel = MIN( dt_vel, DT__PARVEL_MAX );
 
