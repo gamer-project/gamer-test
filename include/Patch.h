@@ -233,6 +233,7 @@ struct patch_t
 
 #  ifdef PARTICLE
    int    NPar;
+   int    NParType[2];
    int    ParListSize;
    long  *ParList;
 
