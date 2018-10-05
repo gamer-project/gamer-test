@@ -79,7 +79,7 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
    real *ParAcc[3] = { amr->Par->AccX, amr->Par->AccY, amr->Par->AccZ };
 #  endif
    real *ParTime   = amr->Par->Time;
-
+   real *ParType   = amr->Par->Type;
 
 // determine PotSg for STORE_POT_GHOST
 #  ifdef STORE_POT_GHOST
@@ -192,7 +192,7 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
 
       for (int PID=PID0; PID<PID0+8; PID++)
       {
-         if ( amr->patch[0][lv][PID]->NPar > 0 )
+         if ( amr->patch[0][lv][PID]->NParType[0] > 0 )
          {
             if ( UpdateStep == PAR_UPSTEP_CORR )
             {
@@ -200,7 +200,7 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
                {
                   ParID = amr->patch[0][lv][PID]->ParList[p];
 
-                  if ( ParTime[ParID] < (real)0.0 )
+                  if ( ParTime[ParID] < (real)0.0 && ParType[ParID] == PTYPE_MASSIVE )
                   {
                      GotYou = true;
                      break;
@@ -228,7 +228,7 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
          {
             for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
             {
-               if ( amr->patch[0][lv][PID]->NPar == 0 )  continue;   // skip patches with no particles
+               if ( amr->patch[0][lv][PID]->NParType[0] == 0 )  continue;   // skip patches with no massive particles
 
 //             temporal interpolation is required for correcting the velocity of particles just crossing
 //             from fine to coarse grids
@@ -256,7 +256,7 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
 
       for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
       {
-         if ( amr->patch[0][lv][PID]->NPar == 0 )  continue;   // skip patches with no particles
+         if ( amr->patch[0][lv][PID]->NParType[0] == 0 )  continue;   // skip patches with no massive particles
 
          if ( !UseStoredAcc )
          {
@@ -310,6 +310,10 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
          for (int p=0; p<amr->patch[0][lv][PID]->NPar; p++)
          {
             ParID = amr->patch[0][lv][PID]->ParList[p];
+
+//          skip tracer particles
+            if ( ParType[ParID] == PTYPE_TRACER )
+               continue;
 
 //          determine time-step and skip particles with zero or negative time-step
             if ( UpdateStep == PAR_UPSTEP_PRED )
