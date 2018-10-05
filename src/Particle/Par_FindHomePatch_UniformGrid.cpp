@@ -179,6 +179,10 @@ void Par_FindHomePatch_UniformGrid( const int lv, const bool OldParOnly,
 // Note        :  1. amr->LB->CutPoint[lv][] must be set in advance (e.g., by calling LB_SetCutPoint())
 //                2. Invoked by Par_FindHomePatch_UniformGrid()
 //                3. Inactive particles will NOT be redistributed
+//                4. Currently only redistribute the Time, Type, Mass, Pos, Vel, and all passive variables
+//                   of particles
+//                   --> Acc is not redistributed since it has not been initialized when calling
+//                       Par_FindHomePatch_UniformGrid()
 //
 // Parameter   :  lv         : Target level
 //                OldParOnly : true  --> only redistribute particles already exist in the current repository
@@ -357,6 +361,7 @@ void SendParticle2HomeRank( const int lv, const bool OldParOnly,
    amr->Par->VelY = amr->Par->Attribute[PAR_VELY];
    amr->Par->VelZ = amr->Par->Attribute[PAR_VELZ];
    amr->Par->Time = amr->Par->Attribute[PAR_TIME];
+   amr->Par->Type = amr->Par->Attribute[PAR_TYPE];
 #  ifdef STORE_PAR_ACC
    amr->Par->AccX = amr->Par->Attribute[PAR_ACCX];
    amr->Par->AccY = amr->Par->Attribute[PAR_ACCY];
