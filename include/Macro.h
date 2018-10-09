@@ -482,6 +482,9 @@
 
 // particle type macros
 
+// number of particle types MUST be 2 for now
+#  define  PAR_NTYPE          2
+
 #  define  PTYPE_MASSIVE      0
 #  define  PTYPE_TRACER       1
 

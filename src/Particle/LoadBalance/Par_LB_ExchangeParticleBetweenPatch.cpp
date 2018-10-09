@@ -248,6 +248,7 @@ void Par_LB_ExchangeParticleBetweenPatch( const int lv,
 //    4-3. add particles to the recv patch
       PID = Recv_PIDList[t];
 
+      const real *PType = amr->Par->Type;
 #     ifdef DEBUG_PARTICLE
 //    do not set ParPos too early since pointers to the particle repository (e.g., amr->Par->PosX)
 //    may change after calling amr->Par->AddOneParticle
@@ -256,9 +257,10 @@ void Par_LB_ExchangeParticleBetweenPatch( const int lv,
       sprintf( Comment, "%s", __FUNCTION__ );
 
       amr->patch[0][lv][PID]->AddParticle( NParThisPatch, NewParIDList, &amr->Par->NPar_Lv[lv],
-                                           ParPos, amr->Par->NPar_AcPlusInac, Comment );
+                                           PType, ParPos, amr->Par->NPar_AcPlusInac, Comment );
 #     else
-      amr->patch[0][lv][PID]->AddParticle( NParThisPatch, NewParIDList, &amr->Par->NPar_Lv[lv] );
+      amr->patch[0][lv][PID]->AddParticle( NParThisPatch, NewParIDList, &amr->Par->NPar_Lv[lv], 
+                                           PType );
 #     endif
    } // for (int t=0; t<Recv_NPatchTotal; t++)
 

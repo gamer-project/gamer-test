@@ -787,6 +787,7 @@ void LB_RedistributeRealPatch( const int lv, real **ParAtt_Old, const bool Remov
          }
 
 //       6.3 associate particles with their home patches
+         const real *PType = amr->Par->Type;
 #        ifdef DEBUG_PARTICLE
 //       do not set ParPos too early since pointers to the particle repository (e.g., amr->Par->PosX)
 //       may change after calling amr->Par->AddOneParticle()
@@ -794,9 +795,10 @@ void LB_RedistributeRealPatch( const int lv, real **ParAtt_Old, const bool Remov
          char Comment[100];
          sprintf( Comment, "%s, PID %d, NPar %d", __FUNCTION__, PID, RecvBuf_NPar[PID] );
          amr->patch[0][lv][PID]->AddParticle( RecvBuf_NPar[PID], ParList, &amr->Par->NPar_Lv[lv],
-                                              ParPos, amr->Par->NPar_AcPlusInac, Comment );
+                                              PType, ParPos, amr->Par->NPar_AcPlusInac, Comment );
 #        else
-         amr->patch[0][lv][PID]->AddParticle( RecvBuf_NPar[PID], ParList, &amr->Par->NPar_Lv[lv] );
+         amr->patch[0][lv][PID]->AddParticle( RecvBuf_NPar[PID], ParList, &amr->Par->NPar_Lv[lv],
+                                              PType );
 #        endif
 #        endif // #ifdef PARTICLE
       } // for (int LocalID=0; LocalID<8; LocalID++)

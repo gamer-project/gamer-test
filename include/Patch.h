@@ -233,7 +233,7 @@ struct patch_t
 
 #  ifdef PARTICLE
    int    NPar;
-   int    NParType[2];
+   int    NParType[PAR_NTYPE];
    int    ParListSize;
    long  *ParList;
 
@@ -867,9 +867,11 @@ struct patch_t
    //===================================================================================
 #  ifdef DEBUG_PARTICLE
    void AddParticle( const int NNew, const long *NewList, long *NPar_Lv,
-                     const real **ParPos, const long NParTot, const char *Comment )
+                     const real *ParType, const real **ParPos, const long NParTot, 
+                     const char *Comment )
 #  else
-   void AddParticle( const int NNew, const long *NewList, long *NPar_Lv )
+   void AddParticle( const int NNew, const long *NewList, long *NPar_Lv,
+                     const real *ParType )
 #  endif
    {
 
@@ -946,7 +948,10 @@ struct patch_t
 
 //    update the particle type number
 
-      for (int p=0; p<NPar; p++) NParType[(int)ParList[p].Type]++
+      for (int p=0; p<NNew; p++) {
+         const long ParID = NewList[p];
+         NParType[(long)ParType[ParID]]++;
+      }
 
 //    update the particle number at the target level
       *NPar_Lv += NNew;
@@ -1053,7 +1058,7 @@ struct patch_t
       {
          LastP = NPar - 1;
 
-         NParType[(int)ParList[RemoveList[p]].Type] --;
+         NParType[(long)ParList[RemoveList[p]].Type]--;
 
          if ( RemoveList[p] != LastP )   ParList[ RemoveList[p] ] = ParList[ LastP ];
 

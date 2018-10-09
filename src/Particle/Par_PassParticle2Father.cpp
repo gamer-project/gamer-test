@@ -61,11 +61,12 @@ void Par_PassParticle2Father( const int FaLv, const int FaPID )
 
 // 3. add particles to father
 //###NOTE : No OpenMP since AddParticle will modify amr->Par->NPar_Lv[]
+   const real *PType = amr->Par->Type;
 #  ifdef DEBUG_PARTICLE
    const real *ParPos[3] = { amr->Par->PosX, amr->Par->PosY, amr->Par->PosZ };
-   amr->patch[0][FaLv][FaPID]->AddParticle( NParSon, ParListSon, &amr->Par->NPar_Lv[FaLv], ParPos, amr->Par->NPar_AcPlusInac, __FUNCTION__ );
+   amr->patch[0][FaLv][FaPID]->AddParticle( NParSon, ParListSon, &amr->Par->NPar_Lv[FaLv], PType, ParPos, amr->Par->NPar_AcPlusInac, __FUNCTION__ );
 #  else
-   amr->patch[0][FaLv][FaPID]->AddParticle( NParSon, ParListSon, &amr->Par->NPar_Lv[FaLv] );
+   amr->patch[0][FaLv][FaPID]->AddParticle( NParSon, ParListSon, &amr->Par->NPar_Lv[FaLv], PType );
 #  endif
 
 

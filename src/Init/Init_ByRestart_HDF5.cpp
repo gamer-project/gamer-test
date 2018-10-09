@@ -1315,16 +1315,18 @@ void LoadOnePatch( const hid_t H5_FileID, const int lv, const int GID, const boo
             Aux_Error( ERROR_INFO, "New particle ID (%ld) >= maximum allowed value (%ld) !!\n",
                        NewParList[p], NParThisRank );
       } // for (int p=0; p<NParThisPatch )
-
+      
 //    link particles to this patch
+      const real *PType = amr->par->Type;
 #     ifdef DEBUG_PARTICLE
       const real *ParPos[3] = { amr->Par->PosX, amr->Par->PosY, amr->Par->PosZ };
       char Comment[MAX_STRING];
       sprintf( Comment, "%s, lv %d, PID %d, GID %d, NPar %d", __FUNCTION__, lv, PID, GID, NParThisPatch );
       amr->patch[0][lv][PID]->AddParticle( NParThisPatch, NewParList, &amr->Par->NPar_Lv[lv],
-                                           ParPos, amr->Par->NPar_AcPlusInac, Comment );
+                                           PType, ParPos, amr->Par->NPar_AcPlusInac, Comment );
 #     else
-      amr->patch[0][lv][PID]->AddParticle( NParThisPatch, NewParList, &amr->Par->NPar_Lv[lv] );
+      amr->patch[0][lv][PID]->AddParticle( NParThisPatch, NewParList, &amr->Par->NPar_Lv[lv],
+                                           PType );
 #     endif
 
 //    free resource
