@@ -485,8 +485,8 @@
 // number of particle types MUST be 2 for now
 #  define  PAR_NTYPE          2
 
-#  define  PTYPE_MASSIVE      0
-#  define  PTYPE_TRACER       1
+#  define  PTYPE_MASSIVE      (real)0
+#  define  PTYPE_TRACER       (real)1
 
 #else // #ifdef PARTICLE
 
