@@ -250,7 +250,8 @@ typedef int ParInteg_t;
 const ParInteg_t
    PAR_INTEG_NONE    = 0,
    PAR_INTEG_EULER   = 1,
-   PAR_INTEG_KDK     = 2;
+   PAR_INTEG_KDK     = 2,
+   PAR_INTEG_RK2     = 3;
 
 typedef int ParUpStep_t;
 const ParUpStep_t
