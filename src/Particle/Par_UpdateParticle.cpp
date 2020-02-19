@@ -192,7 +192,11 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
 
       for (int PID=PID0; PID<PID0+8; PID++)
       {
-         if ( amr->patch[0][lv][PID]->NParType[0] > 0 )
+         int NActivePar = 0;
+         for (int i=1; i<PAR_NTYPE; i++) 
+            NActivePar += amr->patch[0][lv][PID]->NParType[i];
+
+         if ( NActivePar > 0 )
          {
             if ( UpdateStep == PAR_UPSTEP_CORR )
             {
@@ -228,7 +232,10 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
          {
             for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
             {
-               if ( amr->patch[0][lv][PID]->NParType[0] == 0 )  continue;   // skip patches with no massive particles
+               int NActivePar = 0;
+               for (int i=1; i<PAR_NTYPE; i++) 
+                  NActivePar += amr->patch[0][lv][PID]->NParType[i];
+               if ( NActivePar == 0 )  continue;   // skip patches with no massive particles
 
 //             temporal interpolation is required for correcting the velocity of particles just crossing
 //             from fine to coarse grids
@@ -256,7 +263,11 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
 
       for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
       {
-         if ( amr->patch[0][lv][PID]->NParType[0] == 0 )  continue;   // skip patches with no massive particles
+         int NActivePar = 0;
+         for (int i=1; i<PAR_NTYPE; i++) 
+            NActivePar += amr->patch[0][lv][PID]->NParType[i];
+
+         if ( NActivePar == 0 )  continue;   // skip patches with no massive particles
 
          if ( !UseStoredAcc )
          {

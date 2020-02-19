@@ -430,8 +430,8 @@ struct patch_t
 
 #     ifdef PARTICLE
       NPar         = 0;          // must be initialized as 0
-      NParType[0]  = 0;          // must be initialized as 0
-      NParType[1]  = 0;          // must be initialized as 0
+      for (int i=0; i<PAR_NTYPE; i++)
+      NParType[i]  = 0;          // must be initialized as 0
       ParListSize  = 0;          // must be initialized as 0
       ParList      = NULL;
 
@@ -492,8 +492,8 @@ struct patch_t
       if ( ParList_Escp[s] != NULL )      Aux_Error( ERROR_INFO, "ParList_Escp[%d] != NULL !!\n", s );
 
       if ( NPar != 0 )                    Aux_Error( ERROR_INFO, "NPar = %d != 0 !!\n", NPar );
-      if ( NParType[0] != 0 )             Aux_Error( ERROR_INFO, "NParType[0] = %d != 0 !!\n", NParType[0] );
-      if ( NParType[1] != 0 )             Aux_Error( ERROR_INFO, "NParType[1] = %d != 0 !!\n", NParType[1] );
+      for (int i=0; i<PAR_NTYPE; i++)
+      if ( NParType[i] != 0 )             Aux_Error( ERROR_INFO, "NParType[%d] = %d != 0 !!\n", i, NParType[i] );
       if ( NPar_Copy != -1 )              Aux_Error( ERROR_INFO, "NPar_Copy = %d != -1 !!\n", NPar_Copy );
       for (int s=0; s<26; s++)
       if ( NPar_Escp[s] != -1 )           Aux_Error( ERROR_INFO, "NPar_Escp[%d] = %d != -1 !!\n", s, NPar_Escp[s] );
@@ -881,8 +881,8 @@ struct patch_t
       if ( NewList == NULL  &&  NNew != 0 )  Aux_Error( ERROR_INFO, "\"%s\": NewList == NULL !!\n", Comment );
       if ( NNew < 0 )                        Aux_Error( ERROR_INFO, "\"%s\": NNew (%d) < 0 !!\n",   Comment, NNew );
       if ( NPar < 0 )                        Aux_Error( ERROR_INFO, "\"%s\": NPar (%d) < 0 !!\n",   Comment, NPar );
-      if ( NParType[0] < 0 )                 Aux_Error( ERROR_INFO, "\"%s\": NParType[0] (%d) < 0 !!\n", Comment, NParType[0] );
-      if ( NParType[1] < 0 )                 Aux_Error( ERROR_INFO, "\"%s\": NParType[1] (%d) < 0 !!\n", Comment, NParType[1] );
+      for (int i=0; i<PAR_NTYPE; i++)
+      if ( NParType[i] < 0 )                 Aux_Error( ERROR_INFO, "\"%s\": NParType[%d] (%d) < 0 !!\n", Comment, i, NParType[i] );
 
 //    check 2: particle indices in NewList are NEW
       for (int q=0; q<NPar; q++)
@@ -999,8 +999,8 @@ struct patch_t
 //       remove all particles
          NPar        = 0;
          ParListSize = 0;
-         NParType[0] = 0;
-         NParType[1] = 0;
+         for (int i=0; i<PAR_NTYPE; i++)
+            NParType[i] = 0;
 
          if ( ParList != NULL )
          {
@@ -1018,8 +1018,8 @@ struct patch_t
       if ( RemoveList == NULL  &&  NRemove != 0 )  Aux_Error( ERROR_INFO, "RemoveList == NULL !!\n" );
       if ( NRemove < 0 )                           Aux_Error( ERROR_INFO, "NRemove (%d) < 0 !!\n", NRemove );
       if ( NPar < 0 )                              Aux_Error( ERROR_INFO, "NPar (%d) < 0 !!\n", NPar );
-      if ( NParType[0] < 0 )                       Aux_Error( ERROR_INFO, "NParType[0] (%d) < 0 !!\n", NParType[0] );
-      if ( NParType[1] < 0 )                       Aux_Error( ERROR_INFO, "NParType[1] (%d) < 0 !!\n", NParType[1] );
+      for (int i=0; i<PAR_NTYPE; i++)
+      if ( NParType[i] < 0 )                       Aux_Error( ERROR_INFO, "NParType[%d] (%d) < 0 !!\n", i, NParType[0] );
       if ( NRemove > NPar )                        Aux_Error( ERROR_INFO, "NRemove (%d) > NPar (%d) !!\n", NRemove, NPar );
 
 //    check 2: indices in RemoveList do not exceed the number of existing particles
