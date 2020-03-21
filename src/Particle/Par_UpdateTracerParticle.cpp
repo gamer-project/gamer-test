@@ -42,9 +42,7 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
    const double dh                = amr->dh[lv];
    const double _dh               = 1.0/dh;
 
-   const int  VelGhost_Par        = 1;                      // always set to 1 for particles 
    const int  ParGhost            = amr->Par->GhostSize;
-   const int  PotGhost            = VelGhost_Par + ParGhost;
    const int  VelSize             = PS1 + 2*ParGhost;
 
    real InterpParPos[3];
@@ -66,13 +64,13 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
    {
 
 // per-thread variables
-   real *VelX = new real [ 8*CUBE(VelSize) ];    // 8: number of patches per patch group
-   real *VelY = new real [ 8*CUBE(VelSize) ];    // 8: number of patches per patch group
-   real *VelZ = new real [ 8*CUBE(VelSize) ];    // 8: number of patches per patch group
+   real *VelX = new real [ 8*CUBE(VelSize)  ];    // 8: number of patches per patch group
+   real *VelY = new real [ 8*CUBE(VelSize)  ];    // 8: number of patches per patch group
+   real *VelZ = new real [ 8*CUBE(VelSize)  ];    // 8: number of patches per patch group
 
-   real (*VelX3D)[VelSize][VelSize][VelSize] = ( real (*)[VelSize][VelSize][VelSize] )VelX;
-   real (*VelY3D)[VelSize][VelSize][VelSize] = ( real (*)[VelSize][VelSize][VelSize] )VelY;
-   real (*VelZ3D)[VelSize][VelSize][VelSize] = ( real (*)[VelSize][VelSize][VelSize] )VelZ;
+   real (*VelX3D)[VelSize][VelSize][VelSize]    = ( real (*)[VelSize][VelSize][VelSize] )VelX;
+   real (*VelY3D)[VelSize][VelSize][VelSize]    = ( real (*)[VelSize][VelSize][VelSize] )VelY;
+   real (*VelZ3D)[VelSize][VelSize][VelSize]    = ( real (*)[VelSize][VelSize][VelSize] )VelZ;
 
    bool   GotYou;
    long   ParID;
@@ -91,7 +89,7 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
 
       for (int PID=PID0; PID<PID0+8; PID++)
       {
-         if ( amr->patch[0][lv][PID]->NParType[1] > 0 )
+         if ( amr->patch[0][lv][PID]->NParType[0] > 0 )
          {
             if ( UpdateStep == PAR_UPSTEP_CORR )
             {
@@ -121,8 +119,14 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
 
 //    2. prepare the velocity data for the patch group with particles (need NSIDE_26 for ParGhost>0 )
 
-      Prepare_PatchData( lv, TimeNew, Pot, PotGhost, 1, &PID0, _POTE,
-                         OPT__GRA_INT_SCHEME, UNIT_PATCH, NSIDE_26, IntPhase_No, 
+      Prepare_PatchData( lv, TimeNew, VelX, NULL, VelGhost, 1, &PID0, _VELX, _NONE,
+                         OPT__FLU_INT_SCHEME, INT_NONE, UNIT_PATCH, NSIDE_26, IntPhase_No,
+                         OPT__BC_FLU, OPT__BC_POT, MinDens_No, MinPres_No, DE_Consistency_No );
+      Prepare_PatchData( lv, TimeNew, VelY, NULL, VelGhost, 1, &PID0, _VELY, _NONE,
+                         OPT__FLU_INT_SCHEME, INT_NONE, UNIT_PATCH, NSIDE_26, IntPhase_No,
+                         OPT__BC_FLU, OPT__BC_POT, MinDens_No, MinPres_No, DE_Consistency_No );
+      Prepare_PatchData( lv, TimeNew, VelZ, NULL, VelGhost, 1, &PID0, _VELZ, _NONE,
+                         OPT__FLU_INT_SCHEME, INT_NONE, UNIT_PATCH, NSIDE_26, IntPhase_No,
                          OPT__BC_FLU, OPT__BC_POT, MinDens_No, MinPres_No, DE_Consistency_No );
 
       for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
@@ -134,7 +138,7 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
             ParID = amr->patch[0][lv][PID]->ParList[p];
 
 //          skip massive particles
-            if ( ParType[ParID] == PTYPE_MASSIVE )
+            if ( ParType[ParID] != PTYPE_TRACER )
                continue;
 
 //          determine time-step and skip particles with zero or negative time-step
@@ -142,8 +146,17 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
             if ( dt <= (real)0.0 )  continue;
             dt_half = (real)0.5*dt;
 
-            for (int d=0; d<3; d++) InterpParPos[d] = ParPos[d][ParID]+dt*ParVel[d][ParID];
-            
+            int npass = amr->Par->IntegTracer == PAR_INTEG_RK2 ? 2:1;
+
+            for (int ipass=0; i<npass; ipass++) {
+
+            for (int d=0; d<3; d++) {
+               if ( ipass == 0 ) 
+                  InterpParPos[d] = ParPos[d][ParID]+dt*ParVel[d][ParID];
+               else
+                  InterpParPos[d] = ParPos[d][ParID];
+            }
+
 //          4. calculate gas velocity at the particle position
             switch ( IntScheme ) {
 
@@ -349,14 +362,19 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
 
                for (int d=0; d<3; d++)
                {
-                  ParPos[d][ParID] += dt_half*(ParVel[d][ParID]+Vel_Temp[d]);
-                  ParVel[d][ParID] = Vel_Temp[d]; // This is wrong now, need to fix it
+                  if ( ipass == 0) {
+                     ParPos[d][ParID] = InterpParPos[d] + dt_half*(Vel_Temp[d]-ParVel[d][ParID]);
+                  } else {
+                     ParVel[d][ParID] = Vel_Temp[d];
+                  } 
                }
 
             } // amr->Par->IntegTracer
 
             ParTime[ParID] = TimeNew;
 
+            } // for (int ipass=0; i<npass; ipass++)
+         
          } // for (int p=0; p<amr->patch[0][lv][PID]->NPar; p++)`
       } // for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
    } // for (int PID0=0; PID0<amr->NPatchComma[lv][1]; PID0+=8)
@@ -369,195 +387,5 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
    } // end of OpenMP parallel region
 
 } // FUNCTION : Par_UpdateTracerParticle
-
-void interpolate_velocity(real InterpPos[3], real InterpVel[3], ) 
-{
-
-// 4. calculate gas velocity at the particle position
-   switch ( IntScheme ) {
-
-//    4.1 NGP
-      case ( PAR_INTERP_NGP ):
-      {
-         int idx[3];
-
-//       calculate the nearest grid index
-         for (int d=0; d<3; d++)
-         {
-            idx[d] = int( ( InterpPos[d] - amr->patch[0][lv][PID]->EdgeL[d] )*_dh );
-
-//          prevent from round-off errors (especially for NGP and TSC)
-            if ( idx[d] < 0 )
-            {
-#                    ifdef DEBUG_PARTICLE
-                  if (  ! Mis_CompareRealValue( InterpParPos[d], (real)amr->patch[0][lv][PID]->EdgeL[d], NULL, false )  )
-                  Aux_Error( ERROR_INFO, "index outside the vel array (pos[%d] %14.7e, EdgeL %14.7e, idx %d) !!\n",
-                              d, InterpParPos[d], amr->patch[0][lv][PID]->EdgeL[d], idx[d] );
-#                    endif
-
-                  idx[d] = 0;
-            }
-
-            else if ( idx[d] >= VelSize )
-            {
-#                    ifdef DEBUG_PARTICLE
-                  if (  ! Mis_CompareRealValue( InterpParPos[d], (real)amr->patch[0][lv][PID]->EdgeR[d], NULL, false )  )
-                  Aux_Error( ERROR_INFO, "index outside the vel array (pos[%d] %14.7e, EdgeR %14.7e, idx %d) !!\n",
-                              d, InterpParPos[d], amr->patch[0][lv][PID]->EdgeR[d], idx[d] );
-#                    endif
-
-                  idx[d] = VelSize - 1;
-            }
-            } // for (int d=0; d<3; d++)
-
-//             calculate new particle velocity
-            Vel_Temp[0] = VelX3D[P][ idx[2] ][ idx[1] ][ idx[0] ];
-            Vel_Temp[1] = VelY3D[P][ idx[2] ][ idx[1] ][ idx[0] ];
-            Vel_Temp[2] = VelZ3D[P][ idx[2] ][ idx[1] ][ idx[0] ];
-
-      } // PAR_INTERP_NGP
-      break;
-
-
-//          4.2 CIC
-      case ( PAR_INTERP_CIC ):
-      {
-            int    idxLR[2][3];     // array index of the left (idxLR[0][d]) and right (idxLR[1][d]) cells
-            double dr      [3];     // distance to the center of the left cell
-            double Frac [2][3];     // weighting of the left (Frac[0][d]) and right (Frac[1][d]) cells
-
-            for (int d=0; d<3; d++)
-            {
-//                calculate the array index of the left and right cells
-            dr      [d] = ( InterpParPos[d] - amr->patch[0][lv][PID]->EdgeL[d] )*_dh + ParGhost - 0.5;
-            idxLR[0][d] = int( dr[d] );
-            idxLR[1][d] = idxLR[0][d] + 1;
-
-//                prevent from round-off errors
-//                (CIC should be clear off this issue unless round-off erros are comparable to dh)
-            if ( idxLR[0][d] < 0 )
-            {
-#                    ifdef DEBUG_PARTICLE
-                  if (  ! Mis_CompareRealValue( InterpParPos[d], (real)amr->patch[0][lv][PID]->EdgeL[d], NULL, false )  )
-                  Aux_Error( ERROR_INFO, "index outside the vel array (pos[%d] %14.7e, EdgeL %14.7e, idxL %d, idxR %d) !!\n",
-                              d, InterpParPos[d], amr->patch[0][lv][PID]->EdgeL[d], idxLR[0][d], idxLR[1][d] );
-#                    endif
-
-                  idxLR[0][d] = 0;
-                  idxLR[1][d] = 1;
-            }
-
-            else if ( idxLR[1][d] >= VelSize )
-            {
-#                    ifdef DEBUG_PARTICLE
-                  if (  ! Mis_CompareRealValue( InterpParPos[d], (real)amr->patch[0][lv][PID]->EdgeR[d], NULL, false )  )
-                  Aux_Error( ERROR_INFO, "index outside the vel array (pos[%d] %14.7e, EdgeR %14.7e, idxL %d, idxR %d) !!\n",
-                              d, InterpParPos[d], amr->patch[0][lv][PID]->EdgeR[d], idxLR[0][d], idxLR[1][d] );
-#                    endif
-
-                  idxLR[0][d] = VelSize - 2;
-                  idxLR[1][d] = VelSize - 1;
-            }
-
-//                get the weighting of the nearby 8 cells
-            dr     [d] -= (double)idxLR[0][d];
-            Frac[0][d]  = 1.0 - dr[d];
-            Frac[1][d]  =       dr[d];
-            } // for (int d=0; d<3; d++)
-
-//             calculate velocity
-            for (int d=0; d<3; d++) Vel_Temp[d] = (real)0.0;
-
-            for (int k=0; k<2; k++) {
-            for (int j=0; j<2; j++) {
-                  for (int i=0; i<2; i++) {
-                  Vel_Temp[0] += VelX3D[P][ idxLR[k][2] ][ idxLR[j][1] ][ idxLR[i][0] ]
-                              *Frac[i][0]*Frac[j][1]*Frac[k][2];
-                  Vel_Temp[1] += VelY3D[P][ idxLR[k][2] ][ idxLR[j][1] ][ idxLR[i][0] ]
-                              *Frac[i][0]*Frac[j][1]*Frac[k][2];
-                  Vel_Temp[2] += VelZ3D[P][ idxLR[k][2] ][ idxLR[j][1] ][ idxLR[i][0] ]
-                              *Frac[i][0]*Frac[j][1]*Frac[k][2];
-                  }
-            }
-            }
-
-      } // PAR_INTERP_CIC
-      break;
-
-
-//          4.3 TSC
-      case ( PAR_INTERP_TSC ):
-      {
-            int    idxLCR[3][3];    // array index of the left/central/right cells (idxLCR[0/1/2][d])
-            double dr       [3];    // distance to the left edge of the central cell
-            double Frac  [3][3];    // weighting of the left/central/right cells (Frac[0/1/2][d])
-
-            for (int d=0; d<3; d++)
-            {
-//                calculate the array index of the left, central, and right cells
-            dr       [d] = ( InterpParPos[d] - amr->patch[0][lv][PID]->EdgeL[d] )*_dh + ParGhost;
-            idxLCR[1][d] = int( dr[d] );
-            idxLCR[0][d] = idxLCR[1][d] - 1;
-            idxLCR[2][d] = idxLCR[1][d] + 1;
-
-//                prevent from round-off errors (especially for NGP and TSC)
-            if ( idxLCR[0][d] < 0 )
-            {
-#                    ifdef DEBUG_PARTICLE
-                  if (  ! Mis_CompareRealValue( InterpParPos[d], (real)amr->patch[0][lv][PID]->EdgeL[d], NULL, false )  )
-                  Aux_Error( ERROR_INFO, "index outside the vel array (pos[%d] %14.7e, EdgeL %14.7e, idxL %d, idxR %d) !!\n",
-                              d, InterpParPos[d], amr->patch[0][lv][PID]->EdgeL[d], idxLCR[0][d], idxLCR[2][d] );
-#                    endif
-
-                  idxLCR[0][d] = 0;
-                  idxLCR[1][d] = 1;
-                  idxLCR[2][d] = 2;
-            }
-
-            else if ( idxLCR[2][d] >= VelSize )
-            {
-#                    ifdef DEBUG_PARTICLE
-                  if (  ! Mis_CompareRealValue( InterpParPos[d], (real)amr->patch[0][lv][PID]->EdgeR[d], NULL, false )  )
-                  Aux_Error( ERROR_INFO, "index outside the vel array (pos[%d] %14.7e, EdgeR %14.7e, idxL %d, idxR %d) !!\n",
-                              d, InterpParPos[d], amr->patch[0][lv][PID]->EdgeR[d], idxLCR[0][d], idxLCR[2][d] );
-#                    endif
-
-                  idxLCR[0][d] = VelSize - 3;
-                  idxLCR[1][d] = VelSize - 2;
-                  idxLCR[2][d] = VelSize - 1;
-            }
-
-//                get the weighting of the nearby 27 cells
-            dr     [d] -= (double)idxLCR[1][d];
-            Frac[0][d]  = 0.5*SQR( 1.0 - dr[d] );
-            Frac[1][d]  = 0.5*( 1.0 + 2.0*dr[d] - 2.0*SQR(dr[d]) );
-            Frac[2][d]  = 0.5*SQR( dr[d] );
-            } // for (int d=0; d<3; d++)
-
-//             calculate velocity
-            for (int d=0; d<3; d++) Vel_Temp[d] = (real)0.0;
-
-            for (int k=0; k<3; k++) {
-            for (int j=0; j<3; j++) {
-                  for (int i=0; i<3; i++) {
-                  Vel_Temp[0] += VelX3D[P][ idxLCR[k][2] ][ idxLCR[j][1] ][ idxLCR[i][0] ]
-                              *Frac[i][0]*Frac[j][1]*Frac[k][2];
-                  Vel_Temp[1] += VelY3D[P][ idxLCR[k][2] ][ idxLCR[j][1] ][ idxLCR[i][0] ]
-                              *Frac[i][0]*Frac[j][1]*Frac[k][2];
-                  Vel_Temp[2] += VelZ3D[P][ idxLCR[k][2] ][ idxLCR[j][1] ][ idxLCR[i][0] ]
-                              *Frac[i][0]*Frac[j][1]*Frac[k][2];
-                  }
-            }
-            }
-
-      } // PAR_INTERP_TSC
-      break;
-
-
-      default: Aux_Error( ERROR_INFO, "unsupported particle interpolation scheme !!\n" );
-      } // switch ( IntScheme )
-
-} // FUNCTION : interpolate_velocity
-
 
 #endif // #ifdef PARTICLE
