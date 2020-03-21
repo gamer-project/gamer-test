@@ -482,12 +482,13 @@
 
 // particle type macros
 
-// number of particle types MUST be 3 for now
-#  define  PAR_NTYPE          3
+// number of particle types MUST be 4 for now
+#  define  PAR_NTYPE          4
 
-#  define  PTYPE_TRACER       (real)0
-#  define  PTYPE_DARK_MATTER  (real)1
-#  define  PTYPE_STAR         (real)2
+#  define  PTYPE_TRACER          (real)0
+#  define  PTYPE_GENERIC_MASSIVE (real)1
+#  define  PTYPE_DARK_MATTER     (real)2
+#  define  PTYPE_STAR            (real)3
 
 #else // #ifdef PARTICLE
 
