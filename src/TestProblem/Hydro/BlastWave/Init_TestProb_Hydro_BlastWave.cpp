@@ -2,6 +2,7 @@
 #include "TestProb.h"
 
 
+static RandomNumber_t *RNG = NULL;
 
 // problem-specific global variables
 // =======================================================================================
@@ -16,7 +17,13 @@ static double Blast_BField;        // magnetic field strength along the diagonal
 // =======================================================================================
 
 
-
+// problem-specific function prototypes
+#ifdef PARTICLE
+void Par_Init_ByFunction_BlastWave( const long NPar_ThisRank, const long NPar_AllRank,
+                                    real *ParMass, real *ParPosX, real *ParPosY, real *ParPosZ,
+                                    real *ParVelX, real *ParVelY, real *ParVelZ, real *ParTime,
+                                    real *ParType, real *AllAttribute[PAR_NATT_TOTAL] );
+#endif
 
 //-------------------------------------------------------------------------------------------------------
 // Function    :  Validate
@@ -44,10 +51,6 @@ void Validate()
 
 #  ifdef COMOVING
    Aux_Error( ERROR_INFO, "COMOVING must be disabled !!\n" );
-#  endif
-
-#  ifdef PARTICLE
-   Aux_Error( ERROR_INFO, "PARTICLE must be disabled !!\n" );
 #  endif
 
    if ( !OPT__INIT_RESTRICT )
@@ -92,6 +95,7 @@ void SetParameter()
 // ********************************************************************************************************************************
 // ReadPara->Add( "KEY_IN_THE_FILE",   &VARIABLE_ADDRESS,      DEFAULT,       MIN,              MAX               );
 // ********************************************************************************************************************************
+   ReadPara->Add( "Blast_RSeed",       &Blast_RSeed,           -1,            0,                NoMax_int         );
    ReadPara->Add( "Blast_Dens_Bg",     &Blast_Dens_Bg,         -1.0,          Eps_double,       NoMax_double      );
    ReadPara->Add( "Blast_Pres_Bg",     &Blast_Pres_Bg,         -1.0,          Eps_double,       NoMax_double      );
    ReadPara->Add( "Blast_Pres_Exp",    &Blast_Pres_Exp,        -1.0,          Eps_double,       NoMax_double      );
@@ -106,6 +110,28 @@ void SetParameter()
    ReadPara->Read( FileName );
 
    delete ReadPara;
+
+#  ifdef PARTICLE
+
+// get the number of OpenMP threads
+   int NT;
+#  ifdef OPENMP
+#  pragma omp parallel
+#  pragma omp master
+   {  NT = omp_get_num_threads();  }
+#  else
+   {  NT = 1;                      }
+#  endif
+
+// allocate RNG
+   RNG = new RandomNumber_t( NT );
+
+// set the random seed of each MPI rank
+   for (int t=0; t<NT; t++) {
+      RNG->SetSeed(t, Blast_RSeed+MPI_Rank*1000+t);
+   }
+
+#  endif
 
 // set the default explosion center
    for (int d=0; d<3; d++)
@@ -270,9 +296,36 @@ void Init_TestProb_Hydro_BlastWave()
 #  ifdef MHD
    Init_Function_BField_User_Ptr = SetBFieldIC;
 #  endif
+#  ifdef PARTICLE
+   Par_Init_ByFunction_Ptr       = Par_Init_ByFunction_BlastWave;
+#  endif
 #  endif // #if ( MODEL == HYDRO )
 
 
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "%s ... done\n", __FUNCTION__ );
 
 } // FUNCTION : Init_TestProb_Hydro_BlastWave
+
+//-------------------------------------------------------------------------------------------------------
+// Function    :  BlastWave_RandomNumber
+// Description :  Generate a single random number
+//
+// Parameter   :  RNG : Random number generator
+//                Min : Lower limit of the random number
+//                Max : Upper limit of the random number
+//
+// Return      :  Random number
+//-------------------------------------------------------------------------------------------------------
+double BlastWave_RandomNumber(RandomNumber_t *RNG, const double Min, const double Max )
+{
+
+// thread-private variables
+#  ifdef OPENMP
+   const int TID = omp_get_thread_num();
+#  else
+   const int TID = 0;
+#  endif
+
+   return RNG->GetValue( TID, Min, Max );
+
+} // FUNCTION : BlastWave_RandomNumber
