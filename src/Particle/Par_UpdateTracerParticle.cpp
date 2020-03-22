@@ -31,7 +31,7 @@
 //                TimeNew      : Target physical time to reach (also used by PAR_UPSTEP_ACC_ONLY)
 //                TimeOld      : Physical time before update
 //-------------------------------------------------------------------------------------------------------
-void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double TimeOld)
+void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double TimeOld )
 {
 
    const ParInterp_t IntScheme    = amr->Par->InterpTracer;
