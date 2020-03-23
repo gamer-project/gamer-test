@@ -2,10 +2,15 @@
 
 #ifdef PARTICLE
 
-#ifndef GRAVITY
-#   error : ERROR : GRAVITY is not defined !!
-#endif
+//#ifndef GRAVITY
+//#   error : ERROR : GRAVITY is not defined !!
+//#endif
 
+#ifdef GRAVITY
+#include "CUPOT.h"
+extern double ExtPot_AuxArray[EXT_POT_NAUX_MAX];
+extern double ExtAcc_AuxArray[EXT_ACC_NAUX_MAX];
+#endif
 
 
 
@@ -52,6 +57,10 @@
 void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOld, const ParUpStep_t UpdateStep,
                          const bool StoreAcc, const bool UseStoredAcc )
 {
+
+#  ifndef GRAVITY
+   return;
+#  else
 
    const ParInterp_t IntScheme    = amr->Par->Interp;
    const bool   UsePot            = ( OPT__SELF_GRAVITY  ||  OPT__EXT_POT );
@@ -204,7 +213,7 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
                {
                   ParID = amr->patch[0][lv][PID]->ParList[p];
 
-                  if ( ParTime[ParID] < (real)0.0 && ParType[ParID] == PTYPE_MASSIVE )
+                  if ( ParTime[ParID] < (real)0.0 && ParType[ParID] != PTYPE_TRACER )
                   {
                      GotYou = true;
                      break;
@@ -614,6 +623,8 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
    delete [] Acc;
 
    } // end of OpenMP parallel region
+
+#endif // #ifndef GRAVITY
 
 } // FUNCTION : Par_UpdateParticle
 

@@ -651,6 +651,9 @@
 #  define USG_NXT_F     ( 1 )                                     // still define USG_NXT_F/G since many function prototypes
 #  define USG_NXT_G     ( 1 )                                     // require it
 #  endif
+#  ifdef PARTICLE
+#  define RHOEXT_NXT    ( PS1 + 2*RHOEXT_GHOST_SIZE )             // array rho_ext of each patch
+#  endif
 #else
 #  define GRA_NXT       ( 1 )                                     // still define GRA_NXT   ...
 #  define USG_NXT_F     ( 1 )                                     // still define USG_NXT_F ...

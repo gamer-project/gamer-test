@@ -34,7 +34,7 @@
 void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double TimeOld )
 {
 
-   const ParInterp_t IntScheme    = amr->Par->InterpTracer;
+   const ParInteg_t IntScheme    = amr->Par->IntegTracer;
    const bool   IntPhase_No       = false;
    const bool   DE_Consistency_No = false;
    const real   MinDens_No        = -1.0;
@@ -89,7 +89,7 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
 
       for (int PID=PID0; PID<PID0+8; PID++)
       {
-         if ( amr->patch[0][lv][PID]->NParType[0] > 0 )
+         if ( amr->patch[0][lv][PID]->NParType[(long)PTYPE_TRACER] > 0 )
          {
             if ( UpdateStep == PAR_UPSTEP_CORR )
             {
@@ -119,19 +119,20 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
 
 //    2. prepare the velocity data for the patch group with particles (need NSIDE_26 for ParGhost>0 )
 
-      Prepare_PatchData( lv, TimeNew, VelX, NULL, VelGhost, 1, &PID0, _VELX, _NONE,
+      Prepare_PatchData( lv, TimeNew, VelX, NULL, ParGhost, 1, &PID0, _VELX, _NONE,
                          OPT__FLU_INT_SCHEME, INT_NONE, UNIT_PATCH, NSIDE_26, IntPhase_No,
                          OPT__BC_FLU, OPT__BC_POT, MinDens_No, MinPres_No, DE_Consistency_No );
-      Prepare_PatchData( lv, TimeNew, VelY, NULL, VelGhost, 1, &PID0, _VELY, _NONE,
+      Prepare_PatchData( lv, TimeNew, VelY, NULL, ParGhost, 1, &PID0, _VELY, _NONE,
                          OPT__FLU_INT_SCHEME, INT_NONE, UNIT_PATCH, NSIDE_26, IntPhase_No,
                          OPT__BC_FLU, OPT__BC_POT, MinDens_No, MinPres_No, DE_Consistency_No );
-      Prepare_PatchData( lv, TimeNew, VelZ, NULL, VelGhost, 1, &PID0, _VELZ, _NONE,
+      Prepare_PatchData( lv, TimeNew, VelZ, NULL, ParGhost, 1, &PID0, _VELZ, _NONE,
                          OPT__FLU_INT_SCHEME, INT_NONE, UNIT_PATCH, NSIDE_26, IntPhase_No,
                          OPT__BC_FLU, OPT__BC_POT, MinDens_No, MinPres_No, DE_Consistency_No );
 
       for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
       {
-         if ( amr->patch[0][lv][PID]->NParType[1] == 0 )  continue;   // skip patches with no tracer particles
+          // skip patches with no tracer particles
+         if ( amr->patch[0][lv][PID]->NParType[(long)PTYPE_TRACER] == 0 )  continue; 
 
          for (int p=0; p<amr->patch[0][lv][PID]->NPar; p++)
          {
@@ -148,7 +149,7 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
 
             int npass = amr->Par->IntegTracer == PAR_INTEG_RK2 ? 2:1;
 
-            for (int ipass=0; i<npass; ipass++) {
+            for (int ipass=0; ipass<npass; ipass++) {
 
             for (int d=0; d<3; d++) {
                if ( ipass == 0 ) 

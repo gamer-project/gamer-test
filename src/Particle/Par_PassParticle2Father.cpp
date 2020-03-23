@@ -74,7 +74,8 @@ void Par_PassParticle2Father( const int FaLv, const int FaPID )
 //###NOTE : No OpenMP since RemoveParticle will modify amr->Par->NPar_Lv[]
    const bool RemoveAllParticle = true;
    for (int SonPID=SonPID0; SonPID<SonPID0+8; SonPID++)
-      amr->patch[0][SonLv][SonPID]->RemoveParticle( NULL_INT, NULL, &amr->Par->NPar_Lv[SonLv], RemoveAllParticle );
+      amr->patch[0][SonLv][SonPID]->RemoveParticle( NULL_INT, NULL, 
+         &amr->Par->NPar_Lv[SonLv], RemoveAllParticle, PType );
 
 
 // free memory

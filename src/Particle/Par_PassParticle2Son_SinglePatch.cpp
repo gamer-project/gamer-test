@@ -91,7 +91,8 @@ void Par_PassParticle2Son_SinglePatch( const int FaLv, const int FaPID )
 // 4. remove particles in the father patch
 //###NOTE : No OpenMP since RemoveParticle will modify amr->Par->NPar_Lv[]
    const bool RemoveAllParticle = true;
-   amr->patch[0][FaLv][FaPID]->RemoveParticle( NULL_INT, NULL, &amr->Par->NPar_Lv[FaLv], RemoveAllParticle );
+   amr->patch[0][FaLv][FaPID]->RemoveParticle( NULL_INT, NULL, &amr->Par->NPar_Lv[FaLv], 
+                                               RemoveAllParticle, PType );
 
 
 // free memory

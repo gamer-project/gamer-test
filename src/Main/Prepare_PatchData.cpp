@@ -514,8 +514,8 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *OutputCC, rea
    }
 
 
+#  if ( defined PARTICLE && defined GRAVITY ) 
 // determine the patch list for assigning particle mass
-#  ifdef PARTICLE
    const int NNearByPatchMax   = 64;   // maximum number of neaby patches of a patch group (including 8 local patches)
    const int ParMass_NPatchMax = NPG*NNearByPatchMax;
 
@@ -599,6 +599,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *OutputCC, rea
 
                ParMass_PID_List[ ParMass_NPatch_Dup ++ ] = PID;
             }
+
          }
       } // for (int TID=0; TID<NPG; TID++)
 
@@ -623,7 +624,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *OutputCC, rea
       }
 
    } //if ( PrepParOnlyDens || PrepTotalDens )
-#  endif // #ifdef PARTICLE
+#  endif // #if ( defined PARTICLE && defined GRAVITY )
 
 
 // start to prepare data
@@ -668,8 +669,8 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *OutputCC, rea
 #     endif
 
 
+#     if ( defined PARTICLE && defined GRAVITY ) 
 //    assign particle mass onto grids
-#     ifdef PARTICLE
       if ( PrepParOnlyDens || PrepTotalDens )
       {
 //       thread-private variables
@@ -756,7 +757,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *OutputCC, rea
                                 Periodic_No, NULL, UnitDens_No, CheckFarAway_No, UseInputMassPos, InputMassPos );
          } // for (int t=0; t<ParMass_NPatch; t++)
       } // if ( PrepParOnlyDens || PrepTotalDens )
-#     endif // #ifdef PARTICLE
+#     endif // #if ( defined PARTICLE && defined GRAVITY ) 
 
 
 //    note that the total density array needs rho_ext[] of nearby patches
@@ -1635,7 +1636,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *OutputCC, rea
 
 //       c. deposit particle mass onto grids
 // ------------------------------------------------------------------------------------------------------------
-#        ifdef PARTICLE
+#        if ( defined PARTICLE && defined GRAVITY ) 
          if ( PrepParOnlyDens || PrepTotalDens )
          {
 //          (c1) determine the array index for DENS
@@ -1833,7 +1834,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *OutputCC, rea
                } // else if ( SibPID0 == -1 )
             } // for (int Side=0; Side<26; Side++) if ( amr->Par->GhostSize > 0  ||  GhostSize > 0 )
          } // if ( PrepParOnlyDens || PrepTotalDens )
-#        endif // #ifdef PARTICLE
+#        endif // #if ( defined PARTICLE && defined GRAVITY ) 
 
 
 //       d. checks
@@ -1980,7 +1981,7 @@ void Prepare_PatchData( const int lv, const double PrepTime, real *OutputCC, rea
 // free memroy
    for (int s=0; s<26; s++)   delete [] TSib[s];
 
-#  ifdef PARTICLE
+#  if ( defined PARTICLE && defined GRAVITY )
    if ( PrepParOnlyDens || PrepTotalDens )   delete [] ParMass_PID_List;
 #  endif
 
@@ -2756,8 +2757,7 @@ void SetTargetSibling( int NTSib[], int *TSib[] )
 } // FUNCTION : SetTargetSibling
 
 
-
-#ifdef PARTICLE
+#  if ( defined PARTICLE && defined GRAVITY )
 //-------------------------------------------------------------------------------------------------------
 // Function    :  Prepare_PatchData_InitParticleDensityArray
 // Description :  Initialize rho_ext[] by setting rho_ext[0][0][0] = RHO_EXT_NEED_INIT
@@ -2816,7 +2816,7 @@ void Prepare_PatchData_FreeParticleDensityArray( const int lv )
    ParDensArray_Initialized = false;
 
 } // FUNCTION : Prepare_PatchData_FreeParticleDensityArray
-#endif // #ifdef PARTICLE
+#endif // #if ( defined PARTICLE && defined GRAVITY )
 
 
 

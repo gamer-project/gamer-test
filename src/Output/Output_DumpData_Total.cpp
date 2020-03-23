@@ -801,7 +801,7 @@ void Output_DumpData_Total( const char *FileName )
             for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
             {
 //             f1. prepare the particle density data on grids (only if there are leaf patches in this patch group)
-#              ifdef PARTICLE
+#              if ( defined PARTICLE && defined GRAVITY ) 
                if ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE  &&  PID%8 == 0 )
                {
                   for (int PID_CheckSon=PID; PID_CheckSon<PID+8; PID_CheckSon++)
@@ -817,7 +817,7 @@ void Output_DumpData_Total( const char *FileName )
                      }
                   }
                }
-#              endif
+#              endif // #if ( defined PARTICLE && defined GRAVITY ) 
 
 
 //             f2. prepare the cell-centered magnetic field for leaf patches

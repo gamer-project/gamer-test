@@ -200,7 +200,7 @@ struct patch_t
    char (*de_status)[PS1][PS1];
 #  endif
 
-#  ifdef PARTICLE
+#  if ( defined PARTICLE && defined GRAVITY ) 
    real (*rho_ext)[RHOEXT_NXT][RHOEXT_NXT];
 #  endif
 
@@ -392,7 +392,7 @@ struct patch_t
          de_status = NULL;
 #        endif
 
-#        ifdef PARTICLE
+#        if ( defined PARTICLE && defined GRAVITY ) 
          rho_ext   = NULL;
 #        endif
       }
@@ -477,7 +477,9 @@ struct patch_t
 #     endif
 
 #     ifdef PARTICLE
+#     ifdef GRAVITY
       ddelete();
+#     endif
 
 //    check: all particle-related variables/arrays should be deallocated already (except rho_ext when OPT__REUSE_MEMORY is on)
 #     ifdef DEBUG_PARTICLE
@@ -693,7 +695,7 @@ struct patch_t
       delete [] fluid;
       fluid = NULL;
 
-#     ifdef PARTICLE
+#     if ( defined PARTICLE && defined GRAVITY )
       delete [] rho_ext;
       rho_ext = NULL;
 #     endif
@@ -816,6 +818,7 @@ struct patch_t
 
 
 #  ifdef PARTICLE
+#  ifdef GRAVITY
    //===================================================================================
    // Method      :  dnew
    // Description :  Allocate rho_ext[]
@@ -847,6 +850,7 @@ struct patch_t
 
    } // METHOD : ddelete
 
+#  endif // #ifdef GRAVITY
 
 
    //===================================================================================
@@ -979,7 +983,9 @@ struct patch_t
    //                             --> So for NPar_Lv == NULL, one must update NPar_Lv later manually
    //                RemoveAll  : true --> remove all particle in this patch
    //===================================================================================
-   void RemoveParticle( const int NRemove, const int *RemoveList, long *NPar_Lv, const bool RemoveAll )
+   void RemoveParticle( const int NRemove, const int *RemoveList, 
+                        long *NPar_Lv, const bool RemoveAll,
+                        const real *ParType)
    {
 
 //    removing all particles is easy
@@ -1058,7 +1064,7 @@ struct patch_t
       {
          LastP = NPar - 1;
 
-         NParType[(long)ParList[RemoveList[p]].Type]--;
+         NParType[(long)ParType[RemoveList[p]]]--;
 
          if ( RemoveList[p] != LastP )   ParList[ RemoveList[p] ] = ParList[ LastP ];
 

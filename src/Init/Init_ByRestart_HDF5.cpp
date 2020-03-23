@@ -1317,7 +1317,7 @@ void LoadOnePatch( const hid_t H5_FileID, const int lv, const int GID, const boo
       } // for (int p=0; p<NParThisPatch )
       
 //    link particles to this patch
-      const real *PType = amr->par->Type;
+      const real *PType = amr->Par->Type;
 #     ifdef DEBUG_PARTICLE
       const real *ParPos[3] = { amr->Par->PosX, amr->Par->PosY, amr->Par->PosZ };
       char Comment[MAX_STRING];

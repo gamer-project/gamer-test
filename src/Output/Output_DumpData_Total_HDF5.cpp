@@ -1023,7 +1023,7 @@ void Output_DumpData_Total_HDF5( const char *FileName )
 #              endif
 
 //             b. particle density on grids
-#              ifdef PARTICLE
+#              if ( defined PARTICLE && defined GRAVITY )
                if ( v == ParDensDumpIdx )
                {
 //                we do not check minimum density here (just because it's unnecessary)
@@ -2086,7 +2086,9 @@ void FillIn_SymConst( SymConst_t &SymConst )
 
 #  ifdef PARTICLE
    SymConst.Par_NAttStored       = PAR_NATT_STORED;
+#  ifdef GRAVITY
    SymConst.RhoExt_GhostSize     = RHOEXT_GHOST_SIZE;
+#  endif
 
 #  ifdef DEBUG_PARTICLE
    SymConst.Debug_Particle       = 1;

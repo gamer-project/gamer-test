@@ -544,8 +544,10 @@ void LB_RedistributeRealPatch( const int lv, real **ParAtt_Old, const bool Remov
 #     ifdef PARTICLE
       NDone_ParData[TRank] += amr->patch[0][lv][PID]->NPar*PAR_NATT_TOTAL;
 
-//    detach particles from patches to avoid warning messages when deleting patches with particles
-      amr->patch[0][lv][PID]->RemoveParticle( NULL_INT, NULL, &amr->Par->NPar_Lv[lv], RemoveAllParticle );
+//    detach particles from patches to avoid warning messages when deleting
+//    patches with particles
+      const real *PType = amr->Par->Type;
+      amr->patch[0][lv][PID]->RemoveParticle( NULL_INT, NULL, &amr->Par->NPar_Lv[lv], RemoveAllParticle, PType );
 #     endif
    } // for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
 

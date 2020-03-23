@@ -1,6 +1,6 @@
 #include "GAMER.h"
 
-#ifdef PARTICLE
+#if ( defined PARTICLE && defined GRAVITY )
 
 
 
@@ -407,4 +407,4 @@ void Par_Aux_GetConservedQuantity( double &Mass_Total, double &MomX_Total, doubl
 
 
 
-#endif // #ifdef PARTICLE
+#endif // #if ( defined PARTICLE && defined GRAVITY )

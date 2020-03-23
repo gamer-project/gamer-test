@@ -6,11 +6,13 @@ static RandomNumber_t *RNG = NULL;
 
 // problem-specific global variables
 // =======================================================================================
+static int    Blast_RSeed;         // random seed
 static double Blast_Dens_Bg;       // background mass density
 static double Blast_Pres_Bg;       // background pressure
 static double Blast_Pres_Exp;      // explosion pressure
 static double Blast_Radius;        // explosion radius
 static double Blast_Center[3];     // explosion center
+
 #ifdef MHD
 static double Blast_BField;        // magnetic field strength along the diagonal direction
 #endif

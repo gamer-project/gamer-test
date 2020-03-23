@@ -273,7 +273,7 @@ void Init_GAMER( int *argc, char ***argv )
 
 
 // initialize particle acceleration
-#  if ( defined PARTICLE  &&  defined STORE_PAR_ACC )
+#  if ( defined PARTICLE  &&  defined STORE_PAR_ACC  &&  GRAVITY )
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "%s ...\n", "Calculating particle acceleration" );
 
    const bool StoreAcc_Yes    = true;

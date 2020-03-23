@@ -1247,9 +1247,9 @@ void Aux_Check_Parameter()
 
 // errors
 // ------------------------------
-#  ifndef GRAVITY
-#     error : ERROR : currently PARTICLE must work with GRAVITY !!
-#  endif
+//#  ifndef GRAVITY
+//#     error : ERROR : currently PARTICLE must work with GRAVITY !!
+//#  endif
 
 #  ifdef COMOVING
 #     error : ERROR : currently PARTICLE dost NOT support COMOVING !!
@@ -1312,8 +1312,10 @@ void Aux_Check_Parameter()
       Aux_Message( stderr, "WARNING : STORE_POT_GHOST is useless when PAR_IMPROVE_ACC is disabled !!\n" );
 #  endif
 
+#  ifdef GRAVITY
    if ( OPT__GRA_P5_GRADIENT )
       Aux_Message( stderr, "WARNING : currently \"%s\" is not applied to particle update !!\n", "OPT__GRA_P5_GRADIENT" );
+#  endif
 
    } // if ( MPI_Rank == 0 )
 
