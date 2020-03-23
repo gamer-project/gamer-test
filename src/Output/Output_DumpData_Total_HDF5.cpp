@@ -955,7 +955,7 @@ void Output_DumpData_Total_HDF5( const char *FileName )
       for (int PID0=0, t=0; PID0<amr->NPatchComma[lv][1]; PID0+=8, t++)    PID0List[t] = PID0;
 
 //    5-3-0. initialize the particle density array (rho_ext) and collect particles from higher levels for outputting particle density
-#     ifdef PARTICLE
+#     if ( defined PARTICLE  &&  defined GRAVITY )
       if ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE )
       {
          Prepare_PatchData_InitParticleDensityArray( lv );
@@ -1294,7 +1294,7 @@ void Output_DumpData_Total_HDF5( const char *FileName )
             H5_Status = H5Sclose( H5_MemID_Field );
 
 //          free memory used for outputting particle density
-#           ifdef PARTICLE
+#           if ( defined PARTICLE  &&  defined GRAVITY )
             if ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE )
             {
                Prepare_PatchData_FreeParticleDensityArray( lv );

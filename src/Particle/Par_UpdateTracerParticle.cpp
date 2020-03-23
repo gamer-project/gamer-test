@@ -91,22 +91,7 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
       {
          if ( amr->patch[0][lv][PID]->NParType[(long)PTYPE_TRACER] > 0 )
          {
-            if ( UpdateStep == PAR_UPSTEP_CORR )
-            {
-               for (int p=0; p<amr->patch[0][lv][PID]->NPar; p++)
-               {
-                  ParID = amr->patch[0][lv][PID]->ParList[p];
-
-                  if ( ParTime[ParID] < (real)0.0 && ParType[ParID] == PTYPE_TRACER )
-                  {
-                     GotYou = true;
-                     break;
-                  }
-               }
-            }
-
-            else // UpdateStep == PAR_UPSTEP_PRED 
-               GotYou = true;
+            GotYou = true;
          }
 
          if ( GotYou )  break;
@@ -121,13 +106,13 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
 
       Prepare_PatchData( lv, TimeNew, VelX, NULL, ParGhost, 1, &PID0, _VELX, _NONE,
                          OPT__FLU_INT_SCHEME, INT_NONE, UNIT_PATCH, NSIDE_26, IntPhase_No,
-                         OPT__BC_FLU, OPT__BC_POT, MinDens_No, MinPres_No, DE_Consistency_No );
+                         OPT__BC_FLU, BC_POT_NONE, MinDens_No, MinPres_No, DE_Consistency_No );
       Prepare_PatchData( lv, TimeNew, VelY, NULL, ParGhost, 1, &PID0, _VELY, _NONE,
                          OPT__FLU_INT_SCHEME, INT_NONE, UNIT_PATCH, NSIDE_26, IntPhase_No,
-                         OPT__BC_FLU, OPT__BC_POT, MinDens_No, MinPres_No, DE_Consistency_No );
+                         OPT__BC_FLU, BC_POT_NONE, MinDens_No, MinPres_No, DE_Consistency_No );
       Prepare_PatchData( lv, TimeNew, VelZ, NULL, ParGhost, 1, &PID0, _VELZ, _NONE,
                          OPT__FLU_INT_SCHEME, INT_NONE, UNIT_PATCH, NSIDE_26, IntPhase_No,
-                         OPT__BC_FLU, OPT__BC_POT, MinDens_No, MinPres_No, DE_Consistency_No );
+                         OPT__BC_FLU, BC_POT_NONE, MinDens_No, MinPres_No, DE_Consistency_No );
 
       for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
       {

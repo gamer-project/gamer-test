@@ -782,7 +782,7 @@ void Output_DumpData_Total( const char *FileName )
    for (int lv=0; lv<NLEVEL; lv++)
    {
 //    f-1. initialize the particle density array (rho_ext) and collect particles from higher levels for outputting particle density
-#     ifdef PARTICLE
+#     if ( defined PARTICLE && defined GRAVITY )
       if ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE )
       {
          Prepare_PatchData_InitParticleDensityArray( lv );
@@ -898,7 +898,7 @@ void Output_DumpData_Total( const char *FileName )
 
 
 //          f5. free memory used for outputting particle density
-#           ifdef PARTICLE
+#           if ( defined PARTICLE && defined GRAVITY )
             if ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE )
             {
                Prepare_PatchData_FreeParticleDensityArray( lv );

@@ -247,8 +247,8 @@ SIMU_OPTION += -DRANDOM_NUMBER=RNG_CPP11
 
 # gnu
 # -------------------------------------------------------------------------------
- CXX         = g++-8                                       # serial compiler
-#CXX         = $(MPI_PATH)/bin/mpicxx                    # MPI compiler
+#CXX         = g++-8                                       # serial compiler
+CXX         = $(MPI_PATH)/bin/mpicxx                    # MPI compiler
 #CXX         = CC                                        # cray wrapper script
  CXXFLAG     = -g -O3 -std=c++11                                   # general flags
 #CXXFLAG     = -g -O3 -std=c++11

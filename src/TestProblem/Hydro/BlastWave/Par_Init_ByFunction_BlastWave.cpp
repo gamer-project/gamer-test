@@ -4,10 +4,6 @@
 
 extern RandomNumber_t *RNG;
 
-// floating-point type in the input particle file
-typedef double real_par_in;
-//typedef float  real_par_in;
-
 extern double Blast_Center[3];
 extern double Blast_Radius;
 
@@ -54,6 +50,7 @@ double BlastWave_RandomNumber(RandomNumber_t *RNG, const double Min, const doubl
 //
 // Return      :  ParMass, ParPosX/Y/Z, ParVelX/Y/Z, ParTime, AllAttribute
 //-------------------------------------------------------------------------------------------------------
+
 void Par_Init_ByFunction_BlastWave( const long NPar_ThisRank, const long NPar_AllRank,
                                     real *ParMass, real *ParPosX, real *ParPosY, real *ParPosZ,
                                     real *ParVelX, real *ParVelY, real *ParVelZ, real *ParTime,
@@ -69,9 +66,9 @@ void Par_Init_ByFunction_BlastWave( const long NPar_ThisRank, const long NPar_Al
 
       ParMass[p] = real( 0.0 );
 
-      double phi = BlastWave_RandomNumber(0.0, 2.0*M_PI);
-      double theta = acos(BlastWave_RandomNumber(-1.0, 1.0));
-      double r = BlastWave_RandomNumber(0.0, Blast_Radius);
+      double phi = BlastWave_RandomNumber(RNG, 0.0, 2.0*M_PI);
+      double theta = acos(BlastWave_RandomNumber(RNG, -1.0, 1.0));
+      double r = BlastWave_RandomNumber(RNG, 0.0, Blast_Radius);
 
       ParPosX[p] = Blast_Center[0] + r*cos(phi)*sin(theta);
       ParPosY[p] = Blast_Center[1] + r*sin(phi)*sin(theta);
