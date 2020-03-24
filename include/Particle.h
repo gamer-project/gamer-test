@@ -116,7 +116,7 @@ struct Particle_t
    double        ParICMass;
    ParInterp_t   Interp;
    ParInteg_t    Integ;
-   ParInteg_t    IntegTracer;
+   TracerInteg_t IntegTracer;
    bool          ImproveAcc;
    bool          PredictPos;
    double        RemoveCell;
@@ -181,7 +181,7 @@ struct Particle_t
       ParICMass           = -1.0;
       Interp              = PAR_INTERP_NONE;
       Integ               = PAR_INTEG_NONE;
-      IntegTracer         = PAR_INTEG_NONE;
+      IntegTracer         = TRACER_INTEG_NONE;
       ImproveAcc          = true;
       PredictPos          = true;
       RemoveCell          = -999.9;

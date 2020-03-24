@@ -34,7 +34,7 @@
 void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double TimeOld )
 {
 
-   const ParInteg_t IntScheme    = amr->Par->IntegTracer;
+   const TracerInteg_t IntScheme    = amr->Par->IntegTracer;
    const bool   IntPhase_No       = false;
    const bool   DE_Consistency_No = false;
    const real   MinDens_No        = -1.0;
@@ -132,7 +132,7 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
             if ( dt <= (real)0.0 )  continue;
             dt_half = (real)0.5*dt;
 
-            int npass = amr->Par->IntegTracer == PAR_INTEG_RK2 ? 2:1;
+            int npass = amr->Par->IntegTracer == TRACER_INTEG_RK2 ? 2:1;
 
             for (int ipass=0; ipass<npass; ipass++) {
 
@@ -332,7 +332,7 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
 
 
 //          5.0 Euler method
-            if ( amr->Par->IntegTracer == PAR_INTEG_EULER )
+            if ( amr->Par->IntegTracer == TRACER_INTEG_EULER )
             {
                for (int d=0; d<3; d++)
                {
@@ -343,7 +343,7 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
             }
 
 //          5.1 RK2 scheme
-            else if ( amr->Par->IntegTracer == PAR_INTEG_RK2 )
+            else if ( amr->Par->IntegTracer == TRACER_INTEG_RK2 )
             {
 
                for (int d=0; d<3; d++)

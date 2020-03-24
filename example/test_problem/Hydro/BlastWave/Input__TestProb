@@ -7,3 +7,4 @@ Blast_Center_X      -1.0            # explosion center x (<0=default) [box cente
 Blast_Center_Y      -1.0            # explosion center y (<0=default) [box center]
 Blast_Center_Z      -1.0            # explosion center z (<0=default) [box center]
 Blast_BField         5.0e-2         # magnetic field strength along the diagonal direction (MHD only) [1.0]
+Blast_RSeed          20             # Random seed for generating tracer particle positions

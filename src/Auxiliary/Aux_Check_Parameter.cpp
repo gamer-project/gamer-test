@@ -1272,6 +1272,7 @@ void Aux_Check_Parameter()
                     amr->Par->NPar_AcPlusInac, MPI_Rank );
    }
 
+#  ifdef GRAVITY
 #  ifndef STORE_POT_GHOST
    if ( amr->Par->ImproveAcc )
       Aux_Error( ERROR_INFO, "PAR_IMPROVE_ACC must work with STORE_POT_GHOST !!\n" );
@@ -1292,7 +1293,7 @@ void Aux_Check_Parameter()
          Aux_Error( ERROR_INFO, "\"%s\" does NOT work for NX0_TOT[%d] = 2*PATCH_SIZE when periodic BC is adopted !!\n",
                     "Par_MassAssignment()", d );
    }
-
+#  endif // #ifdef GRAVITY
 
 // warning
 // ------------------------------
