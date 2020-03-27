@@ -66,7 +66,7 @@ void Par_Init_Attribute()
 //    --> must also be consistent with the symbolic constant (e.g., PAR_TIME and PAR_ACC*) defined in Macro.h
 //    --> total number of attributes not to be stored on disk is set by PAR_NATT_UNSTORED
 //        --> currently including time and acceleration*3
-#  ifdef STORE_PAR_ACC
+#  if ( defined STORE_PAR_ACC  &&  defined GRAVITY )
    Idx_ParAccX    = AddParticleAttribute( "ParAccX" );
    Idx_ParAccY    = AddParticleAttribute( "ParAccY" );
    Idx_ParAccZ    = AddParticleAttribute( "ParAccZ" );

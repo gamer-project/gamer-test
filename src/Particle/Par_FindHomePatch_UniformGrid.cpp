@@ -363,7 +363,7 @@ void SendParticle2HomeRank( const int lv, const bool OldParOnly,
    amr->Par->VelZ = amr->Par->Attribute[PAR_VELZ];
    amr->Par->Time = amr->Par->Attribute[PAR_TIME];
    amr->Par->Type = amr->Par->Attribute[PAR_TYPE];
-#  ifdef STORE_PAR_ACC
+#  if ( defined STORE_PAR_ACC && defined GRAVITY )
    amr->Par->AccX = amr->Par->Attribute[PAR_ACCX];
    amr->Par->AccY = amr->Par->Attribute[PAR_ACCY];
    amr->Par->AccZ = amr->Par->Attribute[PAR_ACCZ];

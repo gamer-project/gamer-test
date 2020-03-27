@@ -417,7 +417,7 @@
 #  define PAR_NATT_BUILTIN0   9
 
 // acceleration*3 when STORE_PAR_ACC is adopted
-# ifdef STORE_PAR_ACC
+# if ( defined STORE_PAR_ACC && defined GRAVITY )
 #  define PAR_NATT_BUILTIN1   3
 # else
 #  define PAR_NATT_BUILTIN1   0
@@ -462,7 +462,7 @@
 
 // always put acceleration and time at the END of the particle attribute list
 // --> make it easier to discard them when storing data on disk (see Output_DumpData_Total(_HDF5).cpp)
-# ifdef STORE_PAR_ACC
+# if ( defined STORE_PAR_ACC && defined GRAVITY )
 #  define  PAR_ACCX           ( PAR_NATT_TOTAL - 4 )
 #  define  PAR_ACCY           ( PAR_NATT_TOTAL - 3 )
 #  define  PAR_ACCZ           ( PAR_NATT_TOTAL - 2 )
@@ -489,6 +489,10 @@
 #  define  PTYPE_GENERIC_MASSIVE (real)1
 #  define  PTYPE_DARK_MATTER     (real)2
 #  define  PTYPE_STAR            (real)3
+
+# ifdef GRAVITY
+#  define MASSIVE_PARTICLES
+# endif
 
 #else // #ifdef PARTICLE
 

@@ -64,19 +64,19 @@ void Par_Init_ByFunction_BlastWave( const long NPar_ThisRank, const long NPar_Al
    for (long p=0; p<NPar_ThisRank; p++)
    {
 
-      ParMass[p] = real( 0.0 );
+      ParMass[p] = 0.0;
 
       double phi = BlastWave_RandomNumber(RNG, 0.0, 2.0*M_PI);
       double theta = acos(BlastWave_RandomNumber(RNG, -1.0, 1.0));
       double r = BlastWave_RandomNumber(RNG, 0.0, Blast_Radius);
 
-      ParPosX[p] = Blast_Center[0] + r*cos(phi)*sin(theta);
-      ParPosY[p] = Blast_Center[1] + r*sin(phi)*sin(theta);
-      ParPosZ[p] = Blast_Center[2] + r*cos(theta);
+      ParPosX[p] = real(Blast_Center[0] + r*cos(phi)*sin(theta));
+      ParPosY[p] = real(Blast_Center[1] + r*sin(phi)*sin(theta));
+      ParPosZ[p] = real(Blast_Center[2] + r*cos(theta));
 
-      ParVelX[p] = real( 0.0 );
-      ParVelY[p] = real( 0.0 );
-      ParVelZ[p] = real( 0.0 );
+      ParVelX[p] = 0.0;
+      ParVelY[p] = 0.0;
+      ParVelZ[p] = 0.0;
 
 //    synchronize all particles to the physical time at the base level
       ParTime[p] = Time[0];

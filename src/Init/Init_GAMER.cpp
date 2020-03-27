@@ -6,7 +6,7 @@ extern void (*Init_DerivedField_User_Ptr)();
 extern void (*Par_Init_ByFunction_Ptr)( const long NPar_ThisRank, const long NPar_AllRank,
                                         real *ParMass, real *ParPosX, real *ParPosY, real *ParPosZ,
                                         real *ParVelX, real *ParVelY, real *ParVelZ, real *ParTime,
-                                        real *AllAttribute[PAR_NATT_TOTAL] );
+                                        real *ParType, real *AllAttribute[PAR_NATT_TOTAL] );
 #endif
 
 
@@ -195,7 +195,7 @@ void Init_GAMER( int *argc, char ***argv )
             Par_Init_ByFunction_Ptr( amr->Par->NPar_Active, amr->Par->NPar_Active_AllRank,
                                      amr->Par->Mass, amr->Par->PosX, amr->Par->PosY, amr->Par->PosZ,
                                      amr->Par->VelX, amr->Par->VelY, amr->Par->VelZ, amr->Par->Time,
-                                     amr->Par->Attribute );
+                                     amr->Par->Type, amr->Par->Attribute );
          else
             Aux_Error( ERROR_INFO, "Par_Init_ByFunction_Ptr == NULL for PAR_INIT = 1 !!\n" );
          break;

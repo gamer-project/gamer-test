@@ -36,12 +36,16 @@ void Par_GetTimeStep_VelAcc( double &dt_vel, double &dt_acc, const int lv )
 
 
    const real *Vel[3] = { amr->Par->VelX, amr->Par->VelY, amr->Par->VelZ };
-#  ifdef STORE_PAR_ACC
+#  if ( defined STORE_PAR_ACC && defined GRAVITY ) 
    const real *Acc[3] = { amr->Par->AccX, amr->Par->AccY, amr->Par->AccZ };
 #  else
    const real *Acc[3] = { NULL, NULL, NULL };
 #  endif
+#  ifdef MASSIVE_PARTICLES
    const bool  UseAcc = ( DT__PARACC > 0.0 );
+#  else
+   const bool  UseAcc = false;
+#  endif
 #  ifdef OPENMP
    const int   NT     = OMP_NTHREAD;   // number of OpenMP threads
 #  else
