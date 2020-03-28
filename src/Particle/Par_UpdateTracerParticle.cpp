@@ -348,7 +348,7 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
 
                for (int d=0; d<3; d++)
                {
-                  if ( ipass == 0) {
+                  if ( ipass == 0 ) {
                      ParPos[d][ParID] = InterpParPos[d] + dt_half*(Vel_Temp[d]-ParVel[d][ParID]);
                   } else {
                      ParVel[d][ParID] = Vel_Temp[d];
@@ -357,10 +357,10 @@ void Par_UpdateTracerParticle( const int lv, const double TimeNew, const double 
 
             } // amr->Par->IntegTracer
 
+            } // for (int ipass=0; i<npass; ipass++)
+
             ParTime[ParID] = TimeNew;
 
-            } // for (int ipass=0; i<npass; ipass++)
-         
          } // for (int p=0; p<amr->patch[0][lv][PID]->NPar; p++)`
       } // for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
    } // for (int PID0=0; PID0<amr->NPatchComma[lv][1]; PID0+=8)
