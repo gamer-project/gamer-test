@@ -39,8 +39,7 @@ SIMU_OPTION += -DMODEL=HYDRO
 #SIMU_OPTION += -DGRAVITY
 
 # enable particles
-# --> must enable GRAVITY
-SIMU_OPTION += -DPARTICLE
+#SIMU_OPTION += -DPARTICLE
 
 # support Grackle, a chemistry and radiative cooling library
 # --> must set NCOMP_PASSIVE_USER according to the primordial chemistry network set by GRACKLE_PRIMORDIAL
@@ -164,7 +163,7 @@ SIMU_OPTION += -DMAX_PATCH=1000000
 #SIMU_OPTION += -DGPU
 
 # GPU architecture: FERMI/KEPLER/MAXWELL/PASCAL/VOLTA/TURING
-#SIMU_OPTION += -DGPU_ARCH=KEPLER
+SIMU_OPTION += -DGPU_ARCH=KEPLER
 
 # debug mode
 #SIMU_OPTION += -DGAMER_DEBUG
@@ -184,24 +183,24 @@ SIMU_OPTION += -DTIMING
 
 # serial mode (in which no MPI libraries are required)
 # --> must disable LOAD_BALANCE
-#SIMU_OPTION += -DSERIAL
+SIMU_OPTION += -DSERIAL
 
 # load-balance parallelization: HILBERT
 # --> must disable SERIAL
-SIMU_OPTION += -DLOAD_BALANCE=HILBERT
+#SIMU_OPTION += -DLOAD_BALANCE=HILBERT
 
 # overlap MPI communication with computation
 # --> NOT supported yet; must enable LOAD_BALANCE
 #SIMU_OPTION += -DOVERLAP_MPI
 
 # enable OpenMP parallelization
-#SIMU_OPTION += -DOPENMP
+SIMU_OPTION += -DOPENMP
 
 # work on the NAOC Laohu GPU cluster
 #SIMU_OPTION += -DLAOHU
 
 # support HDF5 format
-SIMU_OPTION += -DSUPPORT_HDF5
+#SIMU_OPTION += -DSUPPORT_HDF5
 
 # support GNU scientific library
 #SIMU_OPTION += -DSUPPORT_GSL
@@ -212,7 +211,7 @@ SIMU_OPTION += -DSUPPORT_HDF5
 # random number implementation: RNG_GNU_EXT/RNG_CPP11 (GNU extension drand48_r/c++11 <random>)
 # --> use RNG_GNU_EXT for compilers supporting GNU extensions (**not supported on some macOS**)
 #     use RNG_CPP11   for compilers supporting c++11 (**may need to add -std=c++11 to CXXFLAG**)
-SIMU_OPTION += -DRANDOM_NUMBER=RNG_CPP11
+SIMU_OPTION += -DRANDOM_NUMBER=RNG_GNU_EXT
 
 
 
@@ -247,10 +246,10 @@ SIMU_OPTION += -DRANDOM_NUMBER=RNG_CPP11
 
 # gnu
 # -------------------------------------------------------------------------------
-#CXX         = g++-8                                       # serial compiler
-CXX         = $(MPI_PATH)/bin/mpicxx                    # MPI compiler
+ CXX         = g++                                       # serial compiler
+#CXX         = $(MPI_PATH)/bin/mpicxx                    # MPI compiler
 #CXX         = CC                                        # cray wrapper script
- CXXFLAG     = -g -O3 -std=c++11                                   # general flags
+ CXXFLAG     = -g -O3                                    # general flags
 #CXXFLAG     = -g -O3 -std=c++11
 #CXXFLAG     = -g -Ofast
  CXXFLAG    += -Wall -Wextra                             # warning flags
@@ -384,11 +383,11 @@ LIBYT_PATH   :=
 
 # A "typical" macOS installation without GPU
 #CUDA_PATH    :=
-FFTW_PATH    := /usr/local/fftw-2.1.5
-MPI_PATH     := /usr/local/mpich-3.2_gcc
-HDF5_PATH    := ${HOME}/miniconda3
+#FFTW_PATH    := /usr/local/fftw-2.1.5
+#MPI_PATH     := /usr/local/mpich-3.2
+#HDF5_PATH    := ${HOME}/miniconda3
 #GRACKLE_PATH :=
-GSL_PATH     := /usr/local/gsl-1.16
+#GSL_PATH     := /usr/local/gsl-1.16
 
 # NASA Pleiades (intel compilers and SGI MPI)
 #CUDA_PATH    := /nasa/cuda/9.0/
