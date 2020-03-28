@@ -200,7 +200,7 @@ struct patch_t
    char (*de_status)[PS1][PS1];
 #  endif
 
-#  if ( defined PARTICLE && defined GRAVITY ) 
+#  ifdef MASSIVE_PARTICLES 
    real (*rho_ext)[RHOEXT_NXT][RHOEXT_NXT];
 #  endif
 
@@ -392,7 +392,7 @@ struct patch_t
          de_status = NULL;
 #        endif
 
-#        if ( defined PARTICLE && defined GRAVITY ) 
+#        ifdef MASSIVE_PARTICLES 
          rho_ext   = NULL;
 #        endif
       }
@@ -695,7 +695,7 @@ struct patch_t
       delete [] fluid;
       fluid = NULL;
 
-#     if ( defined PARTICLE && defined GRAVITY )
+#     ifdef MASSIVE_PARTICLES
       delete [] rho_ext;
       rho_ext = NULL;
 #     endif

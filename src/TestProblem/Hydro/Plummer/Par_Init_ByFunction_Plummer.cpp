@@ -1,6 +1,6 @@
 #include "GAMER.h"
 
-#if ( defined PARTICLE  &&  defined GRAVITY )
+#ifdef MASSIVE_PARTICLES
 
 extern int    Plummer_RSeed;
 extern double Plummer_Rho0;
@@ -309,4 +309,4 @@ void RanVec_FixRadius( const double r, double RanVec[] )
 
 
 
-#endif // #if ( defined PARTICLE  &&  defined GRAVITY )
+#endif // #ifdef MASSIVE_PARTICLES
