@@ -19,6 +19,9 @@ void Par_Init_ByFunction_AdvectTracers( const long NPar_ThisRank, const long NPa
                                         real *ParType, real *AllAttribute[PAR_NATT_TOTAL] );
 #endif
 
+bool Flag_AdvectTracers( const int i, const int j, const int k, const int lv, 
+                         const int PID, const double Threshold );
+
 //-------------------------------------------------------------------------------------------------------
 // Function    :  Validate
 // Description :  Validate the compilation flags and runtime parameters for this test problem
@@ -199,7 +202,7 @@ void Init_TestProb_Hydro_AdvectTracers()
 // set the function pointers of various problem-specific routines
    Init_Function_User_Ptr        = SetGridIC;
    Output_User_Ptr               = NULL;
-   Flag_User_Ptr                 = NULL;
+   Flag_User_Ptr                 = Flag_AdvectTracers;
    Mis_GetTimeStep_User_Ptr      = NULL;
    Aux_Record_User_Ptr           = NULL;
    BC_User_Ptr                   = NULL;
@@ -214,3 +217,22 @@ void Init_TestProb_Hydro_AdvectTracers()
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "%s ... done\n", __FUNCTION__ );
 
 } // FUNCTION : Init_TestProb_Hydro_AdvectTracers
+
+bool Flag_AdvectTracers( const int i, const int j, const int k, const int lv, 
+                         const int PID, const double Threshold )
+{
+
+   const double dh     = amr->dh[lv];                                                  // grid size
+   const double Pos[3] = { amr->patch[0][lv][PID]->EdgeL[0] + (i+0.5)*dh,              // x,y,z position
+                           amr->patch[0][lv][PID]->EdgeL[1] + (j+0.5)*dh,
+                           amr->patch[0][lv][PID]->EdgeL[2] + (k+0.5)*dh  };
+
+   const double Center[3] = { 0.5*amr->BoxSize[0], 0.5*amr->BoxSize[1], 0.5*amr->BoxSize[2] };
+   const double dr[3]     = { Pos[0]-Center[0], Pos[1]-Center[1], Pos[2]-Center[2] };
+   const double Radius    = sqrt( dr[0]*dr[0] + dr[1]*dr[1] + dr[2]*dr[2] );
+
+   bool Flag = Radius < Threshold;
+
+   return Flag;
+
+}
