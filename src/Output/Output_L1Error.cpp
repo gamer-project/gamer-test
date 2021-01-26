@@ -236,8 +236,13 @@ void Output_L1Error( void (*AnalFunc_Flu)( real fluid[], const double x, const d
       if ( FirstTime )
       {
 #        if   ( MODEL == HYDRO )
+#        ifdef SRHD
+         fprintf( File_L1, "#%5s %13s %19s %19s %19s %19s %19s",
+                  "NGrid", "Time", "Error(Rho)", "Error(Ux)", "Error(Uy)", "Error(Uz)", "Error(Pres)" );
+#        else
          fprintf( File_L1, "#%5s %13s %19s %19s %19s %19s %19s",
                   "NGrid", "Time", "Error(Dens)", "Error(MomX)", "Error(MomY)", "Error(MomZ)", "Error(Pres)" );
+#        endif
 
          for (int v=0; v<NCOMP_PASSIVE; v++)
          fprintf( File_L1, "    Error(Passive%02d)", v );
@@ -330,9 +335,18 @@ void WriteFile( void (*AnalFunc_Flu)( real fluid[], const double x, const double
    const real  Emag_Nume       = NULL_REAL;
 #  endif
 
+#  ifdef SRHD
+   real PriNume[NCOMP_FLUID];
+   Hydro_Con2Pri( Nume, PriNume, (real)NULL_REAL, NULL_BOOL, NULL_INT, NULL, NULL_BOOL,
+                  (real)NULL_REAL, NULL, NULL, EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                  EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL, NULL );
+#  else
    Nume[ENGY] = Hydro_Con2Pres( Nume[DENS], Nume[MOMX], Nume[MOMY], Nume[MOMZ], Nume[ENGY], Nume+NCOMP_FLUID,
                                 CheckMinPres_No, NULL_REAL, Emag_Nume,
-                                EoS_DensEint2Pres_CPUPtr, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
+                                EoS_DensEint2Pres_CPUPtr,
+                                EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                                EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
+#  endif
 #  endif // #if ( MODEL == HYDRO )
 
 
@@ -348,13 +362,21 @@ void WriteFile( void (*AnalFunc_Flu)( real fluid[], const double x, const double
 #  endif
 
 
-// convert total energy to pressure
 #  if ( MODEL == HYDRO )
+#  ifdef SRHD    // convert conservative variables to primitive variables (SRHD)
+   real AnalPri[NCOMP_FLUID];
+   Hydro_Con2Pri( Anal, AnalPri, (real)NULL_REAL, NULL_BOOL, NULL_INT, NULL, NULL_BOOL,
+                  (real)NULL_REAL, NULL, NULL, EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                  EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL, NULL );
+#  else    // convert total energy to pressure (HD)
    const real Emag_Zero = 0.0;   // Anal[ENGY] set by AnalFunc_Flu() does NOT include magentic energy
 
    Anal[ENGY] = Hydro_Con2Pres( Anal[DENS], Anal[MOMX], Anal[MOMY], Anal[MOMZ], Anal[ENGY], Anal+NCOMP_FLUID,
                                 CheckMinPres_No, NULL_REAL, Emag_Zero,
-                                EoS_DensEint2Pres_CPUPtr, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
+                                EoS_DensEint2Pres_CPUPtr,
+                                EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                                EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
+#  endif
 #  endif
 
 
@@ -374,10 +396,14 @@ void WriteFile( void (*AnalFunc_Flu)( real fluid[], const double x, const double
 // estimate and output errors
    for (int v=0; v<NERR; v++)
    {
-      Err   [v]  = FABS( Anal[v] - Nume[v] );
+      Err   [v]  = FABS( (double)1.0 - Nume[v]/Anal[v] );
       L1_Err[v] += Err[v]*dh;
 
+#     ifdef SRHD
+      fprintf( File[v], " %20.13e %20.13e %20.13e %20.13e\n", r, PriNume[v], AnalPri[v], Err[v] );
+#     else
       fprintf( File[v], " %20.13e %20.13e %20.13e %20.13e\n", r, Nume[v], Anal[v], Err[v] );
+#     endif
    }
 
 } // FUNCTION : WriteFile

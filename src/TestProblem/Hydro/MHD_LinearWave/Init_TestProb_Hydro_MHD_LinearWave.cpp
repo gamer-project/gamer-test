@@ -46,6 +46,10 @@ void Validate()
    Aux_Error( ERROR_INFO, "MHD must be enabled !!\n" );
 #  endif
 
+#  ifdef SRHD
+   Aux_Error( ERROR_INFO, "SRHD must be disabled !!!!\n" );
+#  endif
+
 #  ifdef GRAVITY
    Aux_Error( ERROR_INFO, "GRAVITY must be disabled !!\n" );
 #  endif
@@ -83,7 +87,7 @@ void Validate()
 
 
 
-#if ( MODEL == HYDRO )
+#if ( MODEL == HYDRO && !defined SRHD )
 //-------------------------------------------------------------------------------------------------------
 // Function    :  SetParameter
 // Description :  Load and set the problem-specific runtime parameters
@@ -356,7 +360,7 @@ void Init_TestProb_Hydro_MHD_LinearWave()
    Validate();
 
 
-#  if ( MODEL == HYDRO )
+#  if ( MODEL == HYDRO && !defined SRHD )
 // set the problem-specific runtime parameters
    SetParameter();
 

@@ -45,7 +45,11 @@ void CUFLU_FluidSolver_MHM(
    const bool JeansMinPres, const real JeansMinPres_Coeff,
    const EoS_DE2P_t EoS_DensEint2Pres_Func,
    const EoS_DP2E_t EoS_DensPres2Eint_Func,
-   const EoS_DP2C_t EoS_DensPres2CSqr_Func );
+   const EoS_DP2C_t EoS_DensPres2CSqr_Func,
+   const EoS_GUESS_t EoS_GuessHTilde_Func,
+   const EoS_H2TEM_t EoS_HTilde2Temp_Func,
+   const EoS_TEM2H_t EoS_Temp2HTilde_Func,
+   const EoS_TEM2C_t EoS_Temper2CSqr_Func );
 #elif ( FLU_SCHEME == CTU )
 __global__
 void CUFLU_FluidSolver_CTU(
@@ -407,7 +411,8 @@ void CUAPI_Asyn_FluidSolver( real h_Flu_Array_In[][FLU_NIN ][ CUBE(FLU_NXT) ],
               dt, dh, StoreFlux, StoreElectric, LR_Limiter, MinMod_Coeff,
               Time, UsePot, ExtAcc, GPUExtAcc_Ptr, MinDens, MinPres, MinEint,
               DualEnergySwitch, NormPassive, NNorm, JeansMinPres, JeansMinPres_Coeff,
-              EoS_DensEint2Pres_GPUPtr, EoS_DensPres2Eint_GPUPtr, EoS_DensPres2CSqr_GPUPtr );
+              EoS_DensEint2Pres_GPUPtr, EoS_DensPres2Eint_GPUPtr, EoS_DensPres2CSqr_GPUPtr,
+              EoS_GuessHTilde_GPUPtr, EoS_HTilde2Temp_GPUPtr, EoS_Temp2HTilde_GPUPtr, EoS_Temper2CSqr_GPUPtr );
 
 #        elif ( FLU_SCHEME == CTU )
 

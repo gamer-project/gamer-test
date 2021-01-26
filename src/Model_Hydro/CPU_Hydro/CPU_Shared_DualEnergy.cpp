@@ -5,7 +5,7 @@
 
 #include "CUFLU.h"
 
-#if ( MODEL == HYDRO  &&  defined DUAL_ENERGY )
+#if ( MODEL == HYDRO  &&  !defined SRHD && defined DUAL_ENERGY )
 
 
 
@@ -73,7 +73,8 @@ void Hydro_DualEnergyFix( const real Dens, const real MomX, const real MomY, con
 // --> Enth (i.e., non-thermal energy) includes both kinetic and magnetic energies
    real Enth, Eint, Pres;
 
-   Eint = Hydro_Con2Eint( Dens, MomX, MomY, MomZ, Etot, CheckMinEint_No, NULL_REAL, Emag );
+   Eint = Hydro_Con2Eint( Dens, MomX, MomY, MomZ, Etot, NULL, NULL,
+                          CheckMinEint_No, NULL_REAL, Emag );
    Enth = Etot - Eint;
 
 
@@ -156,7 +157,7 @@ real Hydro_Con2Entropy( const real Dens, const real MomX, const real MomY, const
 // calculate pressure and convert it to entropy
 // --> note that DE_ENPY only works with EOS_GAMMA, which does not involve passive scalars
    Pres = Hydro_Con2Pres( Dens, MomX, MomY, MomZ, Engy, NULL, CheckMinPres_No, NULL_REAL, Emag,
-                          EoS_DensEint2Pres, EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table, NULL );
+                          EoS_DensEint2Pres, NULL, NULL, EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table, NULL );
    Enpy = Hydro_DensPres2Entropy( Dens, Pres, EoS_AuxArray_Flt[1] );
 
    return Enpy;

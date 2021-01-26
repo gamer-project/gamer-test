@@ -179,10 +179,7 @@ void Hydro_Init_ByFunction_AssignData( const int lv )
 
 
 #  ifdef MHD
-
-   if ( OPT__INIT_BFIELD_BYFILE )
-     MHD_Init_BField_ByFile(lv);
-
+   if ( OPT__INIT_BFIELD_BYFILE )  MHD_Init_BField_ByFile(lv);
 #  endif
 
 #  pragma omp parallel for schedule( runtime ) num_threads( OMP_NThread )
@@ -270,9 +267,11 @@ void Hydro_Init_ByFunction_AssignData( const int lv )
 
 
 //       apply density and internal energy floors
+#        if ( !defined SRHD )
          fluid[DENS] = FMAX( fluid[DENS], (real)MIN_DENS );
          fluid[ENGY] = Hydro_CheckMinEintInEngy( fluid[DENS], fluid[MOMX], fluid[MOMY], fluid[MOMZ], fluid[ENGY],
                                                  MIN_EINT, Emag );
+#        endif
 
 //       calculate the dual-energy variable (entropy or internal energy)
 #        if   ( DUAL_ENERGY == DE_ENPY )

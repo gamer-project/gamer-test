@@ -136,6 +136,9 @@ void Flu_BoundaryCondition_User( real *Array, const int NVar_Flu, const int Arra
 #  ifdef MHD
    const double dh_2             = 0.5*dh;
 #  endif
+#  ifdef SRHD
+   const bool   PrepLrtz         = ( TVar   & _LORENTZ_FACTOR ) ? true : false; // Lorentz factor
+#  endif
    const bool   CheckMinPres_Yes = true;
    const bool   PrepVx           = ( TVar & _VELX ) ? true : false;
    const bool   PrepVy           = ( TVar & _VELY ) ? true : false;
@@ -200,19 +203,33 @@ void Flu_BoundaryCondition_User( real *Array, const int NVar_Flu, const int Arra
       v2 = NVar_Flu;
 
 #     if   ( MODEL == HYDRO )
+#     ifdef SRHD
+      real LorentzFactor, Prim[NCOMP_FLUID];
+
+      Hydro_Con2Pri( BVal, Prim, (real)NULL_REAL, NULL_BOOL, NULL_INT, NULL, NULL_BOOL,
+                     (real)NULL_REAL, EoS_DensEint2Pres_CPUPtr, EoS_DensPres2Eint_CPUPtr,
+                     EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr, EoS_AuxArray_Flt,
+                     EoS_AuxArray_Int, h_EoS_Table, NULL, &LorentzFactor );
+
+      if ( PrepLrtz )   Array3D[ v2 ++ ][k][j][i] = LorentzFactor;
+#     else
       if ( PrepVx   )   Array3D[ v2 ++ ][k][j][i] = BVal[MOMX] / BVal[DENS];
       if ( PrepVy   )   Array3D[ v2 ++ ][k][j][i] = BVal[MOMY] / BVal[DENS];
       if ( PrepVz   )   Array3D[ v2 ++ ][k][j][i] = BVal[MOMZ] / BVal[DENS];
+#     endif
       if ( PrepPres )   Array3D[ v2 ++ ][k][j][i] = Hydro_Con2Pres( BVal[DENS], BVal[MOMX], BVal[MOMY],
                                                                     BVal[MOMZ], BVal[ENGY], BVal+NCOMP_FLUID,
                                                                     CheckMinPres_Yes, MIN_PRES, Emag,
-                                                                    EoS_DensEint2Pres_CPUPtr, EoS_AuxArray_Flt,
-                                                                    EoS_AuxArray_Int, h_EoS_Table, NULL );
+                                                                    EoS_DensEint2Pres_CPUPtr,
+                                                                    EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                                                                    EoS_AuxArray_Flt, EoS_AuxArray_Int,
+                                                                    h_EoS_Table, NULL );
       if ( PrepTemp )   Array3D[ v2 ++ ][k][j][i] = Hydro_Con2Temp( BVal[DENS], BVal[MOMX], BVal[MOMY],
                                                                     BVal[MOMZ], BVal[ENGY], BVal+NCOMP_FLUID,
                                                                     CheckMinPres_Yes, MIN_PRES, Emag,
-                                                                    EoS_DensEint2Pres_CPUPtr, EoS_AuxArray_Flt,
-                                                                    EoS_AuxArray_Int, h_EoS_Table );
+                                                                    EoS_DensEint2Pres_CPUPtr,
+                                                                    EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                                                                    EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
 
 #     elif ( MODEL == ELBDM )
 //    no derived variables yet

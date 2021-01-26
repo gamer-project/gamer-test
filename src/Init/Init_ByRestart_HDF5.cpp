@@ -1440,6 +1440,11 @@ void Check_Makefile( const char *FileName, const int FormatVersion )
 #  endif
    LoadField( "DualEnergy",             &RS.DualEnergy,             SID, TID, NonFatal, &RT.DualEnergy,             1, NonFatal );
    LoadField( "Magnetohydrodynamics",   &RS.Magnetohydrodynamics,   SID, TID, NonFatal, &RT.Magnetohydrodynamics,   1,    Fatal );
+   LoadField( "SRHydrodynamics",        &RS.SRHydrodynamics,        SID, TID, NonFatal, &RT.SRHydrodynamics,        1,    Fatal );
+#  ifdef SRHD
+   LoadField( "SRHydroReducedEnergy",   &RS.SRHydroReducedEnergy,   SID, TID, NonFatal, &RT.SRHydroReducedEnergy,   1,    Fatal );
+   LoadField( "SRHydroFourVelocity",    &RS.SRHydroFourVelocity,    SID, TID, NonFatal, &RT.SRHydroFourVelocity,    1, NonFatal );
+#  endif
    LoadField( "CosmicRay",              &RS.CosmicRay,              SID, TID, NonFatal, &RT.CosmicRay,              1,    Fatal );
    LoadField( "EoS",                    &RS.EoS,                    SID, TID, NonFatal, &RT.EoS,                    1, NonFatal );
    LoadField( "BarotropicEoS",          &RS.BarotropicEoS,          SID, TID, NonFatal, &RT.BarotropicEoS,          1, NonFatal );
@@ -1778,10 +1783,16 @@ void Check_InputPara( const char *FileName, const int FormatVersion )
    LoadField( "Opt__Flag_RhoGradient",   &RS.Opt__Flag_RhoGradient,   SID, TID, NonFatal, &RT.Opt__Flag_RhoGradient,    1, NonFatal );
 #  if ( MODEL == HYDRO )
    LoadField( "Opt__Flag_PresGradient",  &RS.Opt__Flag_PresGradient,  SID, TID, NonFatal, &RT.Opt__Flag_PresGradient,   1, NonFatal );
+   LoadField( "Opt__Flag_EngyGradient",  &RS.Opt__Flag_EngyGradient,  SID, TID, NonFatal, &RT.Opt__Flag_EngyGradient,   1, NonFatal );
    LoadField( "Opt__Flag_Vorticity",     &RS.Opt__Flag_Vorticity,     SID, TID, NonFatal, &RT.Opt__Flag_Vorticity,      1, NonFatal );
    LoadField( "Opt__Flag_Jeans",         &RS.Opt__Flag_Jeans,         SID, TID, NonFatal, &RT.Opt__Flag_Jeans,          1, NonFatal );
 #  ifdef MHD
    LoadField( "Opt__Flag_Current",       &RS.Opt__Flag_Current,       SID, TID, NonFatal, &RT.Opt__Flag_Current,        1, NonFatal );
+#  endif
+#  ifdef SRHD
+   LoadField( "Opt__Flag_MomOverDens",   &RS.Opt__Flag_MomOverDens,   SID, TID, NonFatal, &RT.Opt__Flag_MomOverDens,    1, NonFatal );
+   LoadField( "Opt__Flag_4Velocity",     &RS.Opt__Flag_4Velocity,     SID, TID, NonFatal, &RT.Opt__Flag_4Velocity,      1, NonFatal );
+   LoadField( "Opt__Flag_LorentzGradient",&RS.Opt__Flag_LorentzGradient,     SID, TID, NonFatal, &RT.Opt__Flag_LorentzGradient,      1, NonFatal );
 #  endif
 #  endif
 #  if ( MODEL == ELBDM )

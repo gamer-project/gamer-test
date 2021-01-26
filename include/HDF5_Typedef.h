@@ -56,6 +56,7 @@ struct KeyInfo_t
    int    CellScale[NLEVEL];        // amr->scale[lv]
 #  if ( MODEL == HYDRO )
    int    Magnetohydrodynamics;
+   int    SRHydrodynamics;
    int    CosmicRay;
 #  endif
 
@@ -130,9 +131,14 @@ struct Makefile_t
 #  endif
    int DualEnergy;
    int Magnetohydrodynamics;
+   int SRHydrodynamics;
    int CosmicRay;
    int EoS;
    int BarotropicEoS;
+#  ifdef SRHD
+   int SRHydroReducedEnergy;
+   int SRHydroFourVelocity;
+#  endif
 
 #  elif ( MODEL == ELBDM )
    int ConserveMass;
@@ -391,10 +397,16 @@ struct InputPara_t
    int    Opt__Flag_RhoGradient;
 #  if ( MODEL == HYDRO )
    int    Opt__Flag_PresGradient;
+   int    Opt__Flag_EngyGradient;
    int    Opt__Flag_Vorticity;
    int    Opt__Flag_Jeans;
 #  ifdef MHD
    int    Opt__Flag_Current;
+#  endif
+#  ifdef SRHD
+   int    Opt__Flag_LorentzGradient;
+   int    Opt__Flag_4Velocity;
+   int    Opt__Flag_MomOverDens;
 #  endif
 #  endif
 #  if ( MODEL == ELBDM )
@@ -625,6 +637,10 @@ struct InputPara_t
    int    Opt__ManualControl;
    int    Opt__RecordUser;
    int    Opt__OptimizeAggressive;
+#  ifdef SRHD
+   int    SRHydro_ReducedEnergy;
+   int    SRHydro_FourVelocity;
+#  endif
 
 // simulation checks
    int    Opt__Ck_Refine;
@@ -654,10 +670,16 @@ struct InputPara_t
    hvl_t  FlagTable_User        [NLEVEL-1];
 #  if   ( MODEL == HYDRO )
    double FlagTable_PresGradient[NLEVEL-1];
+   double FlagTable_EngyGradient[NLEVEL-1];
    double FlagTable_Vorticity   [NLEVEL-1];
    double FlagTable_Jeans       [NLEVEL-1];
 #  ifdef MHD
    double FlagTable_Current     [NLEVEL-1];
+#  endif
+#  ifdef SRHD
+   double FlagTable_LorentzFactorGradient[NLEVEL-1];
+   double FlagTable_4Velocity            [NLEVEL-1];
+   double FlagTable_Mom_Over_Dens        [NLEVEL-1];
 #  endif
 #  elif ( MODEL == ELBDM )
    double FlagTable_EngyDensity [NLEVEL-1][2];

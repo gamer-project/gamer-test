@@ -1,0 +1,62 @@
+# proton mass   = 1.672621898e-24 [g]
+# electron mass = 9.109383560e-28 [g]
+
+# problem-specific runtime parameters
+Jet_Ambient                                       0         # [0/1]: uniform/file
+Jet_Exhaust                                       3         # [0/1/2/3]: no-jet/left-half-jet/right-half-jet/bipolar-jet
+Jet_Precession                                    0         # [0/1]: precession
+Jet_TimeDependentSrc                              0         # [0/1]: time-dependent source
+
+
+# jet fluid parameters
+Jet_SrcVel                                       10         # jet: jet 4-velocity ( in unit of speed of light )
+Jet_SmoothVel                                     1         # [0/1]: smooth velocity
+Jet_SrcDens                                 5.0e-31         # jet: jet density (in cgs units)
+Jet_SrcTemp                                     1.0         # jet: jet temperature (in K)
+Jet_ParticleMassSrc                 1.672621898e-24         # particle mass in source
+Jet_ParticleMassAmbient             1.672621898e-24         # particle mass in background
+
+
+# source geometry parameters
+Jet_Radius                                      0.5         # jet: radius of the cylinder-shape jet source (in pc)
+Jet_HalfHeight                                  0.5         # jet: half height of the cylinder-shape jet source (in pc)
+Jet_HalfOpeningAngle                            0.0         # jet: half-opening angle
+Jet_CenOffset_x                                +0.0         # jet: jet central coordinates offset x (in pc)
+Jet_CenOffset_y                                +0.0         # jet: jet central coordinates offset y (in pc)
+Jet_CenOffset_z                                +0.0         # jet: jet central coordinates offset z (in pc)
+
+
+# precission parameters
+Jet_AngularVelocity                            +0.0         # precession angular velocity at Schwarzschild radius (degree per code_time)
+Jet_PrecessionAngle                             0.0         # precession angle
+Jet_PrecessionAxis_x                            1.0         # x-corrdinate of precession vector
+Jet_PrecessionAxis_y                            0.0         # y-corrdinate of precession vector
+Jet_PrecessionAxis_z                            0.0         # z-corrdinate of precession vector
+
+
+# Jet_Ambient == 0
+Amb_UniformDens                             5.0e-29         # ambient density (in cgs units)
+Amb_UniformTemp                                1e-4         # ambient temperature (in K)
+Amb_UniformVel_x                               +0.0         # ambient velocity x [0.0]
+Amb_UniformVel_y                               +0.0         # ambient velocity y [0.0]
+Amb_UniformVel_z                               +0.0         # ambient velocity z [0.0]
+
+# estimate default evolution time (i.e. END_T)
+Amb_FluSphereRadius                              -1         # radius of sphere
+CharacteristicSpeed                              -1         # the characteristic speed of the simulation problem
+                                                            # the default end-time (END_T) will be estimated from
+                                                            # `CharacteristicSpeed` and `BOX_SIZE`
+                                                            # The unit of `CharacteristicSpeed` is UNIT_V
+
+# time-dependent source varibles
+Flag_BurstDens                                    0         # [0/1]: off/on
+Flag_Burst4Vel                                    0         # [0/1]: off/on 
+Flag_BurstTemp                                    0         # [0/1]: off/on 
+
+Jet_BurstDens                                     0         # magnitude of density pulse
+Jet_Burst4Vel                                     0         # magnitude of 4-velocity pulse
+Jet_BurstTemp                                     0         # magnitude of temperature pulse
+
+Jet_BurstStartTime                                0         # start time of pulse
+Jet_BurstEndTime                                  0         # end time of pulse
+

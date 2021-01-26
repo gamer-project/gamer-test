@@ -51,6 +51,22 @@ void Init_LoadExtPotTable()
 // table must cover the simulation domain plus GRA_GHOST_SIZE (GRA_GHOST_SIZE-0.5, to be more specific)
 // level-one cells on each side
 // --> for CPU_ExtPotSolver() to fill in the ghost-zone potential (even when STORE_POT_GHOST is off)
+//
+//  |: Cell boundary
+//  ‖: Box boundary
+//  ⊚: Cell-centered value in non-ghost-zone
+//  ∆: Cell-centered value in ghost-zone
+//
+//  EXT_POT_TABLE_NPOINT : Total number of ⊚ and ∆
+//
+//------------------------------------------------------------
+//  EXT_POT_TABLE_EDGEL                 EXT_POT_TABLE_EDGER 
+//         ↓                                   ↓
+//       |-∆-|-∆-‖-⊚-|-⊚-|-⊚-|-⊚-|-⊚-|-⊚-‖-∆-|-∆-|
+//               ↑                       ↑ 
+//          amr->BoxEdgeL           amr->BoxEdgeR 
+//------------------------------------------------------------
+//
    const double ExtraWidth = 0.5*GRA_GHOST_SIZE*amr->dh[0]; // use GRA_GHOST_SIZE instead of GRA_GHOST_SIZE-0.5 for extra safety
 
    for (int d=0; d<3; d++) {
@@ -96,6 +112,10 @@ void Init_LoadExtPotTable()
    fread( h_ExtPotTable, sizeof(real), NPoint3D, File );
    fclose( File );
 
+// normalized external potential by UNIT_D*UNIT_V**2
+   if ( OPT__UNIT )
+      for (long int Idx=0; Idx<NPoint3D; Idx++  )
+          h_ExtPotTable[Idx] /= UNIT_D * UNIT_V * UNIT_V;
 
 // transfer table to GPU
 #  ifdef GPU

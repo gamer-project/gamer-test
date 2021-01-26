@@ -99,6 +99,9 @@ void Init_Load_Parameter()
 // do not check DT__FLUID/FLUID_INIT/GRAVITY/PARVEL_MAX since they may be reset by Init_ResetDefaultParameter()
    ReadPara->Add( "DT__FLUID",                  &DT__FLUID,                      -1.0,             NoMin_double,  NoMax_double   );
    ReadPara->Add( "DT__FLUID_INIT",             &DT__FLUID_INIT,                 -1.0,             NoMin_double,  NoMax_double   );
+#  ifdef SRHD
+   ReadPara->Add( "DT_SPEED_OF_LIGHT",          &DT_SPEED_OF_LIGHT,                 0,             0,             1              );
+#  endif
 #  ifdef GRAVITY
    ReadPara->Add( "DT__GRAVITY",                &DT__GRAVITY,                    -1.0,             NoMin_double,  NoMax_double   );
 #  endif
@@ -134,10 +137,16 @@ void Init_Load_Parameter()
    ReadPara->Add( "OPT__FLAG_LOHNER_DENS",      &OPT__FLAG_LOHNER_DENS,           false,           Useless_bool,  Useless_bool   );
 #  if ( MODEL == HYDRO )
    ReadPara->Add( "OPT__FLAG_PRES_GRADIENT",    &OPT__FLAG_PRES_GRADIENT,         false,           Useless_bool,  Useless_bool   );
+   ReadPara->Add( "OPT__FLAG_ENGY_GRADIENT",    &OPT__FLAG_ENGY_GRADIENT,         false,           Useless_bool,  Useless_bool   );
    ReadPara->Add( "OPT__FLAG_VORTICITY",        &OPT__FLAG_VORTICITY,             false,           Useless_bool,  Useless_bool   );
    ReadPara->Add( "OPT__FLAG_JEANS",            &OPT__FLAG_JEANS,                 false,           Useless_bool,  Useless_bool   );
 #  ifdef MHD
    ReadPara->Add( "OPT__FLAG_CURRENT",          &OPT__FLAG_CURRENT,               false,           Useless_bool,  Useless_bool   );
+#  endif
+#  ifdef SRHD
+   ReadPara->Add( "OPT__FLAG_LORENTZ_GRADIENT", &OPT__FLAG_LORENTZ_GRADIENT,      false,           Useless_bool,  Useless_bool   );
+   ReadPara->Add( "OPT__FLAG_4VELOCITY",        &OPT__FLAG_4VELOCITY,             false,           Useless_bool,  Useless_bool   );
+   ReadPara->Add( "OPT__FLAG_MOM_OVER_DENS",    &OPT__FLAG_MOM_OVER_DENS,         false,           Useless_bool,  Useless_bool   );
 #  endif
    ReadPara->Add( "OPT__FLAG_LOHNER_ENGY",      &OPT__FLAG_LOHNER_ENGY,           false,           Useless_bool,  Useless_bool   );
    ReadPara->Add( "OPT__FLAG_LOHNER_PRES",      &OPT__FLAG_LOHNER_PRES,           false,           Useless_bool,  Useless_bool   );
@@ -431,7 +440,9 @@ void Init_Load_Parameter()
    ReadPara->Add( "OPT__CK_PATCH_ALLOCATE",     &OPT__CK_PATCH_ALLOCATE,          false,           Useless_bool,  Useless_bool   );
    ReadPara->Add( "OPT__CK_FLUX_ALLOCATE",      &OPT__CK_FLUX_ALLOCATE,           false,           Useless_bool,  Useless_bool   );
 #  if ( MODEL == HYDRO )
+#  if ( !defined SRHD && defined MHD )
    ReadPara->Add( "OPT__CK_NEGATIVE",           &OPT__CK_NEGATIVE,                0,               0,             3              );
+#  endif
 #  endif
    ReadPara->Add( "OPT__CK_MEMFREE",            &OPT__CK_MEMFREE,                 1.0,             0.0,           NoMax_double   );
 #  ifdef PARTICLE

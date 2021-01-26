@@ -997,7 +997,7 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
       }
 
 
-#     if ( MODEL == HYDRO )
+#     if ( MODEL == HYDRO && !defined SRHD )
 //    compute magnetic energy
 #     ifdef MHD
       const real Emag = MHD_GetCellCenteredBEnergy( FData_Mag[MAGX], FData_Mag[MAGY], FData_Mag[MAGZ],

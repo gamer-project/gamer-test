@@ -63,6 +63,12 @@ double Mis_GetTimeStep( const int lv, const double dTime_SyncFaLv, const double 
    dTime[NdTime] = dTime_dt * dt_InvokeSolver( DT_FLU_SOLVER, lv );
    sprintf( dTime_Name[NdTime++], "%s", "Hydro_CFL" );
 
+#  ifdef SRHD
+   if ( DT_SPEED_OF_LIGHT ) dTime[NdTime] = ( (Step==0)?DT__FLUID_INIT:DT__FLUID ) * amr->dh[lv];
+   else                     dTime[NdTime] = dt_InvokeSolver( DT_FLU_SOLVER, lv );
+   sprintf( dTime_Name[NdTime++], "%s", "Hydro_CFL" );
+#  endif
+
 #  elif ( MODEL == ELBDM )
    dTime[NdTime] = dTime_dt * ELBDM_GetTimeStep_Fluid( lv );
    sprintf( dTime_Name[NdTime++], "%s", "ELBDM_CFL" );

@@ -71,8 +71,100 @@ void Init_Unit()
       if ( UNIT_V > 0.0 )    NBasicUnit ++;
       if ( UNIT_D > 0.0 )    NBasicUnit ++;
 
-      if ( NBasicUnit != 3 )  Aux_Error( ERROR_INFO, "Number of basic units set in Input__Parameter = %d != 3 !!\n", NBasicUnit );
+//    set all code units
+//    --> do NOT modify the following order of setting different units (otherwise some combinations may fail)
+#     ifdef SRHD
 
+      if ( NBasicUnit != 2 )  Aux_Error( ERROR_INFO, "Number of basic units set in Input__Parameter = %d != 2 !!\n", NBasicUnit );
+
+      // currently velocity in sr-hydro code is fixed in unit of speed of light
+	  UNIT_V = Const_c;
+
+      if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_V is set to %13.7e externally\n", UNIT_V );
+
+//    (1) given time and mass density units, compute length and mass units
+      if ( UNIT_L <= 0.0 && UNIT_M <= 0.0 )
+      {
+         if ( UNIT_T > 0.0 && UNIT_D > 0.0 )
+         {
+            UNIT_L = UNIT_T*UNIT_V;
+            UNIT_M = UNIT_D * CUBE( UNIT_L );
+
+            if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_L is set to %13.7e\n", UNIT_L );
+            if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_M is set to %13.7e\n", UNIT_M );
+         }
+
+         else
+            Aux_Error( ERROR_INFO, "cannot determine the length and mass units !!\n" );
+      }
+
+//    (2) given length and mass density units, compute mass and time units
+      if ( UNIT_M <= 0.0 && UNIT_T <= 0.0 )
+      {
+         if ( UNIT_L > 0.0 && UNIT_D > 0.0 )
+         {
+            UNIT_M = UNIT_D*CUBE(UNIT_L);
+            UNIT_T = UNIT_L / UNIT_V;
+
+            if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_M is set to %13.7e\n", UNIT_M );
+            if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_T is set to %13.7e\n", UNIT_T );
+         }
+
+         else
+            Aux_Error( ERROR_INFO, "cannot determine the mass and time units !!\n" );
+      }
+
+//    (3) given mass and mass density units, compute time and length units
+      if ( UNIT_T <= 0.0 && UNIT_L <= 0.0 )
+      {
+         if ( UNIT_M > 0.0 && UNIT_D > 0.0 )
+         {
+            UNIT_L = pow( UNIT_M/UNIT_D, 1.0/3.0);
+			UNIT_T = UNIT_L / UNIT_V;
+
+            if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_L is set to %13.7e\n", UNIT_L );
+            if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_T is set to %13.7e\n", UNIT_T );
+         }
+
+         else
+            Aux_Error( ERROR_INFO, "cannot determine the length and time units !!\n" );
+      }
+
+//    (4) given mass and time units, compute mass density and lenght units
+      if ( UNIT_D <= 0.0 && UNIT_L <= 0.0 )
+      {
+         if ( UNIT_M > 0.0  &&  UNIT_T > 0.0 )
+         {
+            UNIT_L = UNIT_V*UNIT_T;
+            UNIT_D = UNIT_M / CUBE(UNIT_L);
+
+            if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_L is set to %13.7e\n", UNIT_L );
+            if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_D is set to %13.7e\n", UNIT_D );
+         }
+
+         else
+            Aux_Error( ERROR_INFO, "cannot determine the mass density and length units !!\n" );
+      }
+
+//    (5) given mass and length units, compute mass density and time units
+      if ( UNIT_D <= 0.0 && UNIT_T <= 0.0 )
+      {
+         if ( UNIT_L > 0.0  &&  UNIT_M > 0.0 )
+         {
+            UNIT_D = UNIT_M/CUBE(UNIT_L);
+			UNIT_T = UNIT_L/UNIT_V;
+            if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_D is set to %13.7e\n", UNIT_D );
+            if ( MPI_Rank == 0 )    Aux_Message( stdout, "NOTE : UNIT_T is set to %13.7e\n", UNIT_T );
+         }
+
+         else
+            Aux_Error( ERROR_INFO, "cannot determine the time and mass density units !!\n" );
+      }
+
+
+#     else
+
+      if ( NBasicUnit != 3 )  Aux_Error( ERROR_INFO, "Number of basic units set in Input__Parameter = %d != 3 !!\n", NBasicUnit );
 
 //    set all code units
 //    --> do NOT modify the following order of setting different units (otherwise some combinations may fail)
@@ -146,6 +238,8 @@ void Init_Unit()
          else
             Aux_Error( ERROR_INFO, "cannot determine the density unit !!\n" );
       }
+
+#     endif 
 
 //    (6) energy unit (which cannot be set by users)
       if ( true )

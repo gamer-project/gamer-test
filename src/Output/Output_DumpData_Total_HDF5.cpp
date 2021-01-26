@@ -744,6 +744,16 @@ void Output_DumpData_Total_HDF5( const char *FileName )
    int  NFieldOut;
    char (*FieldName)[MAX_STRING]     = NULL;
    real (*FieldData)[PS1][PS1][PS1]  = NULL;
+#  ifdef SRHD
+   real (*Dens) [PS1][PS1][PS1]      = NULL;
+   real (*MomX) [PS1][PS1][PS1]      = NULL;
+   real (*MomY) [PS1][PS1][PS1]      = NULL;
+   real (*MomZ) [PS1][PS1][PS1]      = NULL;
+   real (*Engy) [PS1][PS1][PS1]      = NULL;
+   real (*Temp) [PS1][PS1][PS1]      = NULL;
+   real Cons[NCOMP_FLUID];
+#  endif
+
 
 #  ifdef MHD
    const int FCMagSizeOnePatch = sizeof(real)*PS1P1*SQR(PS1);
@@ -762,6 +772,11 @@ void Output_DumpData_Total_HDF5( const char *FileName )
 #  ifdef PARTICLE
    int ParDensDumpIdx = -1;
    if ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE )   ParDensDumpIdx = NFieldOut ++;
+#  endif
+
+#  ifdef SRHD
+   int TempDumpIdx = -1; // dump index for temperature
+   TempDumpIdx = NFieldOut ++;
 #  endif
 
 #  ifdef MHD
@@ -797,6 +812,10 @@ void Output_DumpData_Total_HDF5( const char *FileName )
    }
 
    for (int v=0; v<NCOMP_MAG; v++)  sprintf( FCMagName[v], MagLabel[v] );
+#  endif
+
+#  ifdef SRHD
+    sprintf( FieldName[TempDumpIdx], "Temp" );
 #  endif
 
 
@@ -937,6 +956,14 @@ void Output_DumpData_Total_HDF5( const char *FileName )
 
 //          output one field at one level in one rank at a time
             FieldData = new real [ amr->NPatchComma[lv][1] ][PS1][PS1][PS1];
+#           ifdef SRHD
+            Dens      = new real [ amr->NPatchComma[lv][1] ][PS1][PS1][PS1];
+            MomX      = new real [ amr->NPatchComma[lv][1] ][PS1][PS1][PS1];
+            MomY      = new real [ amr->NPatchComma[lv][1] ][PS1][PS1][PS1];
+            MomZ      = new real [ amr->NPatchComma[lv][1] ][PS1][PS1][PS1];
+            Engy      = new real [ amr->NPatchComma[lv][1] ][PS1][PS1][PS1];
+            Temp      = new real [ amr->NPatchComma[lv][1] ][PS1][PS1][PS1];
+#           endif
 
             for (int v=0; v<NFieldOut; v++)
             {
@@ -995,8 +1022,96 @@ void Output_DumpData_Total_HDF5( const char *FileName )
                {
                   for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
                      memcpy( FieldData[PID], amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[v], FieldSizeOnePatch );
+#                 ifdef SRHD
+                  switch (v)
+                  {
+                     case DENS:
+                       for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
+                         memcpy( Dens[PID], amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[v], FieldSizeOnePatch );
+                       break;
+                     case MOMX:
+                       for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
+                         memcpy( MomX[PID], amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[v], FieldSizeOnePatch );
+                       break;
+                     case MOMY:
+                       for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
+                         memcpy( MomY[PID], amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[v], FieldSizeOnePatch );
+                       break;
+                     case MOMZ:
+                       for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
+                         memcpy( MomZ[PID], amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[v], FieldSizeOnePatch );
+                       break;
+                     case ENGY:
+                       for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
+                         memcpy( Engy[PID], amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[v], FieldSizeOnePatch );
+                       break;
+                  }
+#                 endif
                }
 
+#              ifdef SRHD
+               } // for (int v=0; v<NFieldOut; v++)
+
+//             convert conserved quantities to temperature
+               for ( int PID=0;PID < amr->NPatchComma[lv][1];PID++)
+	           for ( int i=0;i<PS1;i++  )
+	           for ( int j=0;j<PS1;j++  )
+	           for ( int k=0;k<PS1;k++  )
+               {
+	              Cons[0] = Dens[PID][i][j][k];
+	              Cons[1] = MomX[PID][i][j][k];
+	              Cons[2] = MomY[PID][i][j][k];
+	              Cons[3] = MomZ[PID][i][j][k];
+	              Cons[4] = Engy[PID][i][j][k];
+#                 ifdef CHECK_FAILED_CELL_IN_FLUID
+	              if(SRHD_CheckUnphysical(Cons, NULL, __FUNCTION__, __LINE__, true)) exit(EXIT_FAILURE);
+#                 endif
+                  Temp[PID][i][j][k] =  Hydro_Con2Temp( Cons[0], Cons[1], Cons[2], Cons[3], Cons[4], 
+                                                        NULL, NULL_BOOL, NULL_REAL, NULL_REAL, NULL,
+                                                        EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                                                        EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+               }
+
+//             copy conserved data and temperature into FieldData
+               for (int v=0; v<NFieldOut; v++)
+	           {
+	              switch (v)
+	               {
+	                  case DENS:
+	                     for ( int PID=0;PID < amr->NPatchComma[lv][1];PID++)
+	                           memcpy( FieldData[PID], Dens[PID], FieldSizeOnePatch );
+	                    break;
+	                  case MOMX:
+	                     for ( int PID=0;PID < amr->NPatchComma[lv][1];PID++)
+	                           memcpy( FieldData[PID], MomX[PID], FieldSizeOnePatch );
+	                    break;
+	                  case MOMY:
+	                     for ( int PID=0;PID < amr->NPatchComma[lv][1];PID++)
+	                           memcpy( FieldData[PID], MomY[PID], FieldSizeOnePatch );
+	                    break;
+	                  case MOMZ:
+	                     for ( int PID=0;PID < amr->NPatchComma[lv][1];PID++)
+	                           memcpy( FieldData[PID], MomZ[PID], FieldSizeOnePatch );
+	                    break;
+	                  case ENGY:
+	                     for ( int PID=0;PID < amr->NPatchComma[lv][1];PID++)
+	                           memcpy( FieldData[PID], Engy[PID], FieldSizeOnePatch );
+	                    break;
+	                  case 5:
+	                     for ( int PID=0;PID < amr->NPatchComma[lv][1];PID++)
+	                           memcpy( FieldData[PID], Temp[PID], FieldSizeOnePatch );
+	                    break;
+#                     ifdef GRAVITY
+                      case 6:
+                         for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
+                            memcpy( FieldData[PID], amr->patch[ amr->PotSg[lv] ][lv][PID]->pot, FieldSizeOnePatch );
+                        break;
+#                     endif
+	                  default:
+                      Aux_Error(ERROR_INFO, "Out of the range! NFieldOut=%d, v=%d\n", NFieldOut, v);
+	                    break;
+                   }
+#              endif
 
 //             5-3-1-4. write data to disk
                H5_SetID_Field = H5Dopen( H5_GroupID_GridData, FieldName[v], H5P_DEFAULT );
@@ -1010,6 +1125,14 @@ void Output_DumpData_Total_HDF5( const char *FileName )
 
 //          5-3-1-5.free resource before dumping magnetic field to save memory
             delete [] FieldData;
+#           ifdef SRHD
+            delete [] Dens;
+            delete [] MomX;
+            delete [] MomY;
+            delete [] MomZ;
+            delete [] Engy;
+            delete [] Temp;
+#           endif
 
             H5_Status = H5Sclose( H5_MemID_Field );
 
@@ -1645,6 +1768,14 @@ void FillIn_Makefile( Makefile_t &Makefile )
 
    Makefile.EoS                    = EOS;
 
+#  ifdef SRHD
+   Makefile.SRHydrodynamics        = 1;
+   Makefile.SRHydroReducedEnergy   = REDUCED_ENERGY;
+   Makefile.SRHydroFourVelocity    = FOUR_VELOCITY;
+#  else
+   Makefile.SRHydrodynamics        = 0;
+#  endif
+
 #  ifdef BAROTROPIC_EOS
    Makefile.BarotropicEoS          = 1;
 #  else
@@ -2017,10 +2148,16 @@ void FillIn_InputPara( InputPara_t &InputPara )
    InputPara.Opt__Flag_RhoGradient   = OPT__FLAG_RHO_GRADIENT;
 #  if ( MODEL == HYDRO )
    InputPara.Opt__Flag_PresGradient  = OPT__FLAG_PRES_GRADIENT;
+   InputPara.Opt__Flag_EngyGradient  = OPT__FLAG_ENGY_GRADIENT;
    InputPara.Opt__Flag_Vorticity     = OPT__FLAG_VORTICITY;
    InputPara.Opt__Flag_Jeans         = OPT__FLAG_JEANS;
 #  ifdef MHD
    InputPara.Opt__Flag_Current       = OPT__FLAG_CURRENT;
+#  endif
+#  ifdef SRHD
+   InputPara.Opt__Flag_4Velocity       = OPT__FLAG_4VELOCITY;
+   InputPara.Opt__Flag_MomOverDens     = OPT__FLAG_MOM_OVER_DENS;
+   InputPara.Opt__Flag_LorentzGradient = OPT__FLAG_LORENTZ_GRADIENT;
 #  endif
 #  endif
 #  if ( MODEL == ELBDM )
@@ -2305,10 +2442,14 @@ void FillIn_InputPara( InputPara_t &InputPara )
 
 #     if   ( MODEL == HYDRO )
       InputPara.FlagTable_PresGradient[lv]    = FlagTable_PresGradient[lv];
+      InputPara.FlagTable_EngyGradient[lv]    = FlagTable_EngyGradient[lv];
       InputPara.FlagTable_Vorticity   [lv]    = FlagTable_Vorticity   [lv];
       InputPara.FlagTable_Jeans       [lv]    = FlagTable_Jeans       [lv];
 #     ifdef MHD
       InputPara.FlagTable_Current     [lv]    = FlagTable_Current     [lv];
+#     endif
+#     ifdef SRHD
+      InputPara.FlagTable_LorentzFactorGradient[lv]    = FlagTable_LorentzFactorGradient[lv];
 #     endif
 
 #     elif ( MODEL == ELBDM )
@@ -2468,9 +2609,15 @@ void GetCompound_Makefile( hid_t &H5_TypeID )
 #  endif
    H5Tinsert( H5_TypeID, "DualEnergy",             HOFFSET(Makefile_t,DualEnergy             ), H5T_NATIVE_INT );
    H5Tinsert( H5_TypeID, "Magnetohydrodynamics",   HOFFSET(Makefile_t,Magnetohydrodynamics   ), H5T_NATIVE_INT );
+   H5Tinsert( H5_TypeID, "SRHydrodynamics",        HOFFSET(Makefile_t,SRHydrodynamics        ), H5T_NATIVE_INT );
    H5Tinsert( H5_TypeID, "CosmicRay",              HOFFSET(Makefile_t,CosmicRay              ), H5T_NATIVE_INT );
    H5Tinsert( H5_TypeID, "EoS",                    HOFFSET(Makefile_t,EoS                    ), H5T_NATIVE_INT );
    H5Tinsert( H5_TypeID, "BarotropicEoS",          HOFFSET(Makefile_t,BarotropicEoS          ), H5T_NATIVE_INT );
+
+#  ifdef SRHD
+   H5Tinsert( H5_TypeID, "SRHydroReducedEnergy",   HOFFSET(Makefile_t,SRHydroReducedEnergy  ), H5T_NATIVE_INT );
+   H5Tinsert( H5_TypeID, "SRHydroFourVelocity",    HOFFSET(Makefile_t,SRHydroFourVelocity   ), H5T_NATIVE_INT );
+#  endif
 
 #  elif ( MODEL == ELBDM )
    H5Tinsert( H5_TypeID, "ConserveMass",           HOFFSET(Makefile_t,ConserveMass           ), H5T_NATIVE_INT );
@@ -2781,10 +2928,16 @@ void GetCompound_InputPara( hid_t &H5_TypeID )
    H5Tinsert( H5_TypeID, "Opt__Flag_RhoGradient",   HOFFSET(InputPara_t,Opt__Flag_RhoGradient  ), H5T_NATIVE_INT     );
 #  if ( MODEL == HYDRO )
    H5Tinsert( H5_TypeID, "Opt__Flag_PresGradient",  HOFFSET(InputPara_t,Opt__Flag_PresGradient ), H5T_NATIVE_INT     );
+   H5Tinsert( H5_TypeID, "Opt__Flag_EngyGradient",  HOFFSET(InputPara_t,Opt__Flag_EngyGradient ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "Opt__Flag_Vorticity",     HOFFSET(InputPara_t,Opt__Flag_Vorticity    ), H5T_NATIVE_INT     );
    H5Tinsert( H5_TypeID, "Opt__Flag_Jeans",         HOFFSET(InputPara_t,Opt__Flag_Jeans        ), H5T_NATIVE_INT     );
 #  ifdef MHD
    H5Tinsert( H5_TypeID, "Opt__Flag_Current",       HOFFSET(InputPara_t,Opt__Flag_Current      ), H5T_NATIVE_INT     );
+#  endif
+#  ifdef SRHD
+   H5Tinsert( H5_TypeID, "Opt__Flag_4Velocity",     HOFFSET(InputPara_t,Opt__Flag_4Velocity      ), H5T_NATIVE_INT );
+   H5Tinsert( H5_TypeID, "Opt__Flag_MomOverDens",   HOFFSET(InputPara_t,Opt__Flag_MomOverDens  ),   H5T_NATIVE_INT );
+   H5Tinsert( H5_TypeID, "Opt__Flag_LorentzGradient", HOFFSET(InputPara_t,Opt__Flag_LorentzGradient), H5T_NATIVE_INT );
 #  endif
 #  endif
 #  if ( MODEL == ELBDM )
@@ -3075,10 +3228,14 @@ void GetCompound_InputPara( hid_t &H5_TypeID )
 
 #  if   ( MODEL == HYDRO )
    H5Tinsert( H5_TypeID, "FlagTable_PresGradient", HOFFSET(InputPara_t,FlagTable_PresGradient  ), H5_TypeID_Arr_NLvM1Double   );
+   H5Tinsert( H5_TypeID, "FlagTable_EngyGradient", HOFFSET(InputPara_t,FlagTable_EngyGradient  ), H5_TypeID_Arr_NLvM1Double   );         
    H5Tinsert( H5_TypeID, "FlagTable_Vorticity",    HOFFSET(InputPara_t,FlagTable_Vorticity     ), H5_TypeID_Arr_NLvM1Double   );
    H5Tinsert( H5_TypeID, "FlagTable_Jeans",        HOFFSET(InputPara_t,FlagTable_Jeans         ), H5_TypeID_Arr_NLvM1Double   );
 #  ifdef MHD
    H5Tinsert( H5_TypeID, "FlagTable_Current",      HOFFSET(InputPara_t,FlagTable_Current       ), H5_TypeID_Arr_NLvM1Double   );
+#  endif
+#  ifdef SRHD
+   H5Tinsert( H5_TypeID, "FlagTable_LorentzFactorGradient", HOFFSET(InputPara_t,FlagTable_LorentzFactorGradient  ), H5_TypeID_Arr_NLvM1Double   );
 #  endif
 #  elif ( MODEL == ELBDM )
    H5Tinsert( H5_TypeID, "FlagTable_EngyDensity",  HOFFSET(InputPara_t,FlagTable_EngyDensity   ), H5_TypeID_Arr_NLvM1_2Double );

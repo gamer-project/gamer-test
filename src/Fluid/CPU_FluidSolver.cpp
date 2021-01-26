@@ -59,6 +59,10 @@ void CPU_FluidSolver_MHM(
    const EoS_DE2P_t EoS_DensEint2Pres_Func,
    const EoS_DP2E_t EoS_DensPres2Eint_Func,
    const EoS_DP2C_t EoS_DensPres2CSqr_Func,
+   const EoS_GUESS_t EoS_GuessHTilde_Func,
+   const EoS_H2TEM_t EoS_HTilde2Temp_Func,
+   const EoS_TEM2H_t EoS_Temp2HTilde_Func,
+   const EoS_TEM2C_t EoS_Temper2CSqr_Func,
    const double c_EoS_AuxArray_Flt[],
    const int    c_EoS_AuxArray_Int[],
    const real* const c_EoS_Table[EOS_NTABLE_MAX] );
@@ -229,7 +233,8 @@ void CPU_FluidSolver( real h_Flu_Array_In[][FLU_NIN][ CUBE(FLU_NXT) ],
                             UsePot, ExtAcc, CPUExtAcc_Ptr, ExtAcc_AuxArray, MinDens, MinPres, MinEint,
                             DualEnergySwitch, NormPassive, NNorm, NormIdx, JeansMinPres, JeansMinPres_Coeff,
                             EoS_DensEint2Pres_CPUPtr, EoS_DensPres2Eint_CPUPtr, EoS_DensPres2CSqr_CPUPtr,
-                            EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+                            EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr, EoS_Temp2HTilde_CPUPtr,
+                            EoS_Temper2CSqr_CPUPtr, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
 
 #     elif ( FLU_SCHEME == CTU )
 

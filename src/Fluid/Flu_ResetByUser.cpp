@@ -135,9 +135,10 @@ void Flu_ResetByUser_API_Default( const int lv, const int FluSg, const double TT
          Reset = Flu_ResetByUser_Func_Ptr( fluid, x, y, z, TTime, lv, NULL );
 
 //       operations necessary only when this cell has been reset
+//       --> SRHD do not check and remedy unphysically reseted cells temporarily.
          if ( Reset )
          {
-#           if ( MODEL == HYDRO )
+#           if ( MODEL == HYDRO && !defined SRHD )
 #           ifdef MHD
             const real Emag = MHD_GetCellCenteredBEnergyInPatch( lv, PID, i, j, k, amr->MagSg[lv] );
 #           else

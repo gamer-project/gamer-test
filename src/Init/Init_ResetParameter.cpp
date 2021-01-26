@@ -60,7 +60,9 @@ void Init_ResetParameter()
 #     if   ( MODEL == HYDRO )
 #     if   ( FLU_SCHEME == RTVD )
       DT__FLUID = 0.50;
-#     elif ( FLU_SCHEME == MHM )
+#     elif ( FLU_SCHEME == MHM && defined SRHD )
+      DT__FLUID = 0.45;
+#     elif ( FLU_SCHEME == MHM && !defined SRHD )
       DT__FLUID = 0.80;
 #     elif ( FLU_SCHEME == MHM_RP )
       DT__FLUID = 0.80;

@@ -44,6 +44,9 @@ void Hydro_DataReconstruction( const real g_ConVar   [][ CUBE(FLU_NXT) ],
                                const EoS_DE2P_t EoS_DensEint2Pres,
                                const EoS_DP2E_t EoS_DensPres2Eint,
                                const EoS_DP2C_t EoS_DensPres2CSqr,
+                               const EoS_GUESS_t EoS_GuessHTilde,
+                               const EoS_H2TEM_t EoS_HTilde2Temp,
+                               const EoS_TEM2H_t EoS_Temp2HTilde,
                                const double EoS_AuxArray_Flt[],
                                const int    EoS_AuxArray_Int[],
                                const real *const EoS_Table[EOS_NTABLE_MAX] );
@@ -55,6 +58,8 @@ void Hydro_ComputeFlux( const real g_FC_Var [][NCOMP_TOTAL_PLUS_MAG][ CUBE(N_FC_
                         const OptExtAcc_t ExtAcc, const ExtAcc_t ExtAcc_Func, const double ExtAcc_AuxArray[],
                         const real MinDens, const real MinPres, const bool DumpIntFlux, real g_IntFlux[][NCOMP_TOTAL][ SQR(PS2) ],
                         const EoS_DE2P_t EoS_DensEint2Pres, const EoS_DP2C_t EoS_DensPres2CSqr,
+                        const EoS_GUESS_t EoS_GuessHTilde, const EoS_H2TEM_t EoS_HTilde2Temp, EoS_TEM2H_t EoS_Temp2HTilde,
+                        const EoS_TEM2C_t EoS_Temper2CSqr,
                         const double EoS_AuxArray_Flt[], const int EoS_AuxArray_Int[],
                         const real *const EoS_Table[EOS_NTABLE_MAX] );
 void Hydro_FullStepUpdate( const real g_Input[][ CUBE(FLU_NXT) ], real g_Output[][ CUBE(PS2) ], char g_DE_Status[],
@@ -80,8 +85,10 @@ void Hydro_RiemannSolver_HLLE( const int XYZ, real Flux_Out[], const real L_In[]
 #elif ( RSOLVER == HLLC )
 void Hydro_RiemannSolver_HLLC( const int XYZ, real Flux_Out[], const real L_In[], const real R_In[],
                                const real MinDens, const real MinPres, const EoS_DE2P_t EoS_DensEint2Pres,
-                               const EoS_DP2C_t EoS_DensPres2CSqr, const double EoS_AuxArray_Flt[],
-                               const int EoS_AuxArray_Int[], const real* const EoS_Table[EOS_NTABLE_MAX] );
+                               const EoS_DP2C_t EoS_DensPres2CSqr, const EoS_GUESS_t EoS_GuessHTilde,
+                               const EoS_H2TEM_t EoS_HTilde2Temp, const EoS_TEM2C_t EoS_Temper2CSqr,
+                               const double EoS_AuxArray_Flt[], const int EoS_AuxArray_Int[],
+                               const real* const EoS_Table[EOS_NTABLE_MAX] );
 #elif ( RSOLVER == HLLD )
 void Hydro_RiemannSolver_HLLD( const int XYZ, real Flux_Out[], const real L_In[], const real R_In[],
                                const real MinDens, const real MinPres, const EoS_DE2P_t EoS_DensEint2Pres,
@@ -93,8 +100,10 @@ void Hydro_Con2Pri( const real In[], real Out[], const real MinPres,
                     const bool NormPassive, const int NNorm, const int NormIdx[],
                     const bool JeansMinPres, const real JeansMinPres_Coeff,
                     const EoS_DE2P_t EoS_DensEint2Pres, const EoS_DP2E_t EoS_DensPres2Eint,
+                    const EoS_GUESS_t EoS_GuessHTilde, const EoS_H2TEM_t EoS_HTilde2Temp,
                     const double EoS_AuxArray_Flt[], const int EoS_AuxArray_Int[],
-                    const real *const EoS_Table[EOS_NTABLE_MAX], real* const EintOut );
+                    const real *const EoS_Table[EOS_NTABLE_MAX],
+                    real* const EintOut, real* LorentzFactor_Ptr );
 #ifdef MHD
 void MHD_ComputeElectric(       real g_EC_Ele[][ CUBE(N_EC_ELE) ],
                           const real g_FC_Flux[][NCOMP_TOTAL_PLUS_MAG][ CUBE(N_FC_FLUX) ],
@@ -122,26 +131,28 @@ static void Hydro_RiemannPredict_Flux( const real g_ConVar[][ CUBE(FLU_NXT) ],
                                              real g_Flux_Half[][NCOMP_TOTAL_PLUS_MAG][ CUBE(N_FC_FLUX) ],
                                        const real g_FC_B[][ SQR(FLU_NXT)*FLU_NXT_P1 ],
                                        const real g_CC_B[][ CUBE(FLU_NXT) ],
-                                       const real MinDens, const real MinPres,
-                                       const EoS_DE2P_t EoS_DensEint2Pres,
-                                       const EoS_DP2C_t EoS_DensPres2CSqr,
+                                       const real MinDens, const real MinPres, const EoS_DE2P_t EoS_DensEint2Pres,
+                                       const EoS_DP2C_t EoS_DensPres2CSqr, const EoS_GUESS_t EoS_GuessHTilde,
+                                       const EoS_H2TEM_t EoS_HTilde2Temp, const EoS_TEM2C_t EoS_Temper2CSqr,
                                        const double EoS_AuxArray_Flt[],
                                        const int    EoS_AuxArray_Int[],
                                        const real *const EoS_Table[EOS_NTABLE_MAX] );
 GPU_DEVICE
-static void Hydro_RiemannPredict( const real g_ConVar_In[][ CUBE(FLU_NXT) ],
-                                  const real g_FC_B_Half[][ FLU_NXT_P1*SQR(FLU_NXT) ],
-                                  const real g_Flux_Half[][NCOMP_TOTAL_PLUS_MAG][ CUBE(N_FC_FLUX) ],
-                                        real g_PriVar_Half[][ CUBE(FLU_NXT) ],
-                                  const real dt, const real dh,
-                                  const real MinDens, const real MinPres, const real MinEint,
-                                  const bool NormPassive, const int NNorm, const int NormIdx[],
-                                  const bool JeansMinPres, const real JeansMinPres_Coeff,
-                                  const EoS_DE2P_t EoS_DensEint2Pres,
-                                  const EoS_DP2E_t EoS_DensPres2Eint,
-                                  const double EoS_AuxArray_Flt[],
-                                  const int    EoS_AuxArray_Int[],
-                                  const real *const EoS_Table[EOS_NTABLE_MAX] );
+void Hydro_RiemannPredict( const real g_ConVar_In[][ CUBE(FLU_NXT) ],
+                           const real g_FC_B_Half[][ FLU_NXT_P1*SQR(FLU_NXT) ],
+                           const real g_Flux_Half[][NCOMP_TOTAL_PLUS_MAG][ CUBE(N_FC_FLUX) ],
+                                 real g_PriVar_Half[][ CUBE(FLU_NXT) ],
+                           const real dt, const real dh,
+                           const real MinDens, const real MinPres, const real MinEint,
+                           const bool NormPassive, const int NNorm, const int NormIdx[],
+                           const bool JeansMinPres, const real JeansMinPres_Coeff,
+                           const EoS_DE2P_t EoS_DensEint2Pres,
+                           const EoS_DP2E_t EoS_DensPres2Eint,
+                           const EoS_GUESS_t EoS_GuessHTilde,
+                           const EoS_H2TEM_t EoS_HTilde2Temp,
+                           const double EoS_AuxArray_Flt[],
+                           const int    EoS_AuxArray_Int[],
+                           const real *const EoS_Table[EOS_NTABLE_MAX] );
 #endif
 
 
@@ -211,6 +222,10 @@ static void Hydro_RiemannPredict( const real g_ConVar_In[][ CUBE(FLU_NXT) ],
 //                EoS_DensEint2Pres_Func : Function pointer to the EoS routine of computing the gas pressure
 //                EoS_DensPres2Eint_Func :                    . . .                             gas internal energy
 //                EoS_DensPres2CSqr_Func :                    . . .                             sound speed square
+//                EoS_GuessHTilde_Func   :                    . . .                             gussed reduced enthalpy
+//                EoS_HTilde2Temp_Func   :                    . . .                             temperature
+//                EoS_Temp2HTilde_Func   :                    . . .                             reduced enthalpy
+//                EoS_Temper2CSqr_Func   :                    . . .                             sound speed square
 //                c_EoS_AuxArray_*       : Auxiliary arrays for the EoS routines (for CPU only)
 //                c_EoS_Table            : EoS tables                            (for CPU only)
 //                                         --> When using GPU, these CPU-only variables are stored in the constant memory
@@ -243,7 +258,11 @@ void CUFLU_FluidSolver_MHM(
    const bool JeansMinPres, const real JeansMinPres_Coeff,
    const EoS_DE2P_t EoS_DensEint2Pres_Func,
    const EoS_DP2E_t EoS_DensPres2Eint_Func,
-   const EoS_DP2C_t EoS_DensPres2CSqr_Func )
+   const EoS_DP2C_t EoS_DensPres2CSqr_Func,
+   const EoS_GUESS_t EoS_GuessHTilde_Func,
+   const EoS_H2TEM_t EoS_HTilde2Temp_Func,
+   const EoS_TEM2H_t EoS_Temp2HTilde_Func,
+   const EoS_TEM2C_t EoS_Temper2CSqr_Func )
 #else
 void CPU_FluidSolver_MHM(
    const real   g_Flu_Array_In [][NCOMP_TOTAL][ CUBE(FLU_NXT) ],
@@ -274,6 +293,10 @@ void CPU_FluidSolver_MHM(
    const EoS_DE2P_t EoS_DensEint2Pres_Func,
    const EoS_DP2E_t EoS_DensPres2Eint_Func,
    const EoS_DP2C_t EoS_DensPres2CSqr_Func,
+   const EoS_GUESS_t EoS_GuessHTilde_Func,
+   const EoS_H2TEM_t EoS_HTilde2Temp_Func,
+   const EoS_TEM2H_t EoS_Temp2HTilde_Func,
+   const EoS_TEM2C_t EoS_Temper2CSqr_Func,
    const double c_EoS_AuxArray_Flt[],
    const int    c_EoS_AuxArray_Int[],
    const real* const c_EoS_Table[EOS_NTABLE_MAX] )
@@ -385,6 +408,7 @@ void CPU_FluidSolver_MHM(
 //       1-a-2. evaluate the half-step first-order fluxes by Riemann solver
          Hydro_RiemannPredict_Flux( g_Flu_Array_In[P], g_Flux_Half_1PG, g_Mag_Array_In[P], g_PriVar_1PG+MAG_OFFSET,
                                     MinDens, MinPres, EoS_DensEint2Pres_Func, EoS_DensPres2CSqr_Func,
+                                    EoS_GuessHTilde_Func, EoS_HTilde2Temp_Func, EoS_Temper2CSqr_Func,
                                     c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
 
 
@@ -405,6 +429,7 @@ void CPU_FluidSolver_MHM(
                                dt, dh, MinDens, MinPres, MinEint, NormPassive, NNorm, c_NormIdx,
                                JeansMinPres, JeansMinPres_Coeff,
                                EoS_DensEint2Pres_Func, EoS_DensPres2Eint_Func,
+                               EoS_GuessHTilde_Func, EoS_HTilde2Temp_Func,
                                c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
 
 
@@ -415,6 +440,7 @@ void CPU_FluidSolver_MHM(
                                    MinDens, MinPres, MinEint, NormPassive, NNorm, c_NormIdx,
                                    JeansMinPres, JeansMinPres_Coeff,
                                    EoS_DensEint2Pres_Func, EoS_DensPres2Eint_Func, EoS_DensPres2CSqr_Func,
+                                   EoS_GuessHTilde_Func, EoS_HTilde2Temp_Func, EoS_Temp2HTilde_Func,
                                    c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
 
 
@@ -427,6 +453,7 @@ void CPU_FluidSolver_MHM(
                                    MinDens, MinPres, MinEint, NormPassive, NNorm, c_NormIdx,
                                    JeansMinPres, JeansMinPres_Coeff,
                                    EoS_DensEint2Pres_Func, EoS_DensPres2Eint_Func, EoS_DensPres2CSqr_Func,
+                                   EoS_GuessHTilde_Func, EoS_HTilde2Temp_Func, EoS_Temp2HTilde_Func,
                                    c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
 
 #        endif // #if ( FLU_SCHEME == MHM_RP ) ... else ...
@@ -445,7 +472,8 @@ void CPU_FluidSolver_MHM(
                             dt, dh, Time, UsePot, ExtAcc, ExtAcc_Func, c_ExtAcc_AuxArray,
                             MinDens, MinPres, StoreFlux, g_Flux_Array[P],
                             EoS_DensEint2Pres_Func, EoS_DensPres2CSqr_Func,
-                            c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
+                            EoS_GuessHTilde_Func, EoS_HTilde2Temp_Func, EoS_Temp2HTilde_Func,
+                            EoS_Temper2CSqr_Func, c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
 
 
 //       3. evaluate electric field and update B field at the full time-step
@@ -503,9 +531,9 @@ void Hydro_RiemannPredict_Flux( const real g_ConVar[][ CUBE(FLU_NXT) ],
                                       real g_Flux_Half[][NCOMP_TOTAL_PLUS_MAG][ CUBE(N_FC_FLUX) ],
                                 const real g_FC_B[][ SQR(FLU_NXT)*FLU_NXT_P1 ],
                                 const real g_CC_B[][ CUBE(FLU_NXT) ],
-                                const real MinDens, const real MinPres,
-                                const EoS_DE2P_t EoS_DensEint2Pres,
-                                const EoS_DP2C_t EoS_DensPres2CSqr,
+                                const real MinDens, const real MinPres, const EoS_DE2P_t EoS_DensEint2Pres,
+                                const EoS_DP2C_t EoS_DensPres2CSqr, const EoS_GUESS_t EoS_GuessHTilde,
+                                const EoS_H2TEM_t EoS_HTilde2Temp, const EoS_TEM2C_t EoS_Temper2CSqr,
                                 const double EoS_AuxArray_Flt[],
                                 const int    EoS_AuxArray_Int[],
                                 const real *const EoS_Table[EOS_NTABLE_MAX] )
@@ -607,8 +635,9 @@ void Hydro_RiemannPredict_Flux( const real g_ConVar[][ CUBE(FLU_NXT) ],
          Hydro_RiemannSolver_HLLE ( d, Flux_1Face, ConVar_L, ConVar_R, MinDens, MinPres,
                                     EoS_DensEint2Pres, EoS_DensPres2CSqr, EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table );
 #        elif ( RSOLVER == HLLC  &&  !defined MHD )
-         Hydro_RiemannSolver_HLLC ( d, Flux_1Face, ConVar_L, ConVar_R, MinDens, MinPres,
-                                    EoS_DensEint2Pres, EoS_DensPres2CSqr, EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table );
+         Hydro_RiemannSolver_HLLC ( d, Flux_1Face, ConVar_L, ConVar_R, MinDens, MinPres, EoS_DensEint2Pres, EoS_DensPres2CSqr,
+                                    EoS_GuessHTilde, EoS_HTilde2Temp, EoS_Temper2CSqr,
+                                    EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table );
 #        elif ( RSOLVER == HLLD  &&  defined MHD )
          Hydro_RiemannSolver_HLLD ( d, Flux_1Face, ConVar_L, ConVar_R, MinDens, MinPres,
                                     EoS_DensEint2Pres, EoS_DensPres2CSqr, EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table );
@@ -673,6 +702,8 @@ void Hydro_RiemannPredict( const real g_ConVar_In[][ CUBE(FLU_NXT) ],
                            const bool JeansMinPres, const real JeansMinPres_Coeff,
                            const EoS_DE2P_t EoS_DensEint2Pres,
                            const EoS_DP2E_t EoS_DensPres2Eint,
+                           const EoS_GUESS_t EoS_GuessHTilde,
+                           const EoS_H2TEM_t EoS_HTilde2Temp,
                            const double EoS_AuxArray_Flt[],
                            const int    EoS_AuxArray_Int[],
                            const real *const EoS_Table[EOS_NTABLE_MAX] )
@@ -735,6 +766,7 @@ void Hydro_RiemannPredict( const real g_ConVar_In[][ CUBE(FLU_NXT) ],
 #     endif
 
 //    apply density and internal energy floors
+#     ifndef SRHD
       out_con[0] = FMAX( out_con[0], MinDens );
 #     ifndef BAROTROPIC_EOS
 #     ifdef MHD
@@ -748,10 +780,12 @@ void Hydro_RiemannPredict( const real g_ConVar_In[][ CUBE(FLU_NXT) ],
       for (int v=NCOMP_FLUID; v<NCOMP_TOTAL; v++)
       out_con[v] = FMAX( out_con[v], TINY_NUMBER );
 #     endif
+#     endif
 
 //    conserved --> primitive variables
       Hydro_Con2Pri( out_con, out_pri, MinPres, NormPassive, NNorm, NormIdx, JeansMinPres, JeansMinPres_Coeff,
-                     EoS_DensEint2Pres, EoS_DensPres2Eint, EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table, EintPtr );
+                     EoS_DensEint2Pres, EoS_DensPres2Eint, EoS_GuessHTilde, EoS_HTilde2Temp,
+                     EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table, EintPtr, NULL );
 
 //    store the results in g_PriVar_Half[]
       for (int v=0; v<NCOMP_TOTAL_PLUS_MAG; v++)   g_PriVar_Half[v][idx_out] = out_pri[v];

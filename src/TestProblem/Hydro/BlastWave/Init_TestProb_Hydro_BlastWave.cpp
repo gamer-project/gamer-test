@@ -187,23 +187,30 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
 {
 
    const double r = SQRT( SQR(x-Blast_Center[0]) + SQR(y-Blast_Center[1]) + SQR(z-Blast_Center[2]) );
-   double Dens, MomX, MomY, MomZ, Pres, Eint, Etot;
 
-   Dens = Blast_Dens_Bg;
-   MomX = 0.0;
-   MomY = 0.0;
-   MomZ = 0.0;
-   Pres = ( r <= Blast_Radius ) ? Blast_Pres_Exp : Blast_Pres_Bg;
-   Eint = EoS_DensPres2Eint_CPUPtr( Dens, Pres, NULL, EoS_AuxArray_Flt,
-                                    EoS_AuxArray_Int, h_EoS_Table );    // assuming EoS requires no passive scalars
-   Etot = Hydro_ConEint2Etot( Dens, MomX, MomY, MomZ, Eint, 0.0 );      // do NOT include magnetic energy here
+#  ifdef SRHD
+   real Prim[NCOMP_FLUID];
+   Prim[0] = Blast_Dens_Bg;
+   Prim[1] = 0.0;
+   Prim[2] = 0.0; 
+   Prim[3] = 0.0; 
+   Prim[4] = ( r <= Blast_Radius ) ? Blast_Pres_Exp : Blast_Pres_Bg;
+   Hydro_Pri2Con( Prim, fluid, NULL_BOOL, NULL_INT, NULL, NULL,
+                  EoS_Temp2HTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
+#  else
+   double Pres, Eint;
 
-// set the output array
-   fluid[DENS] = Dens;
-   fluid[MOMX] = MomX;
-   fluid[MOMY] = MomY;
-   fluid[MOMZ] = MomZ;
-   fluid[ENGY] = Etot;
+   fluid[DENS] = Blast_Dens_Bg;
+   fluid[MOMX] = 0.0;
+   fluid[MOMY] = 0.0;
+   fluid[MOMZ] = 0.0;
+   Pres        = ( r <= Blast_Radius ) ? Blast_Pres_Exp : Blast_Pres_Bg;
+   Eint        = EoS_DensPres2Eint_CPUPtr( fluid[DENS], Pres, NULL, EoS_AuxArray_Flt,
+                                           EoS_AuxArray_Int, h_EoS_Table );   // assuming EoS requires no passive scalars
+   fluid[ENGY] = Hydro_ConEint2Etot( fluid[DENS], fluid[MOMX], fluid[MOMY],
+                                     fluid[MOMZ], Eint, 0.0 );  // do NOT include magnetic energy here
+#  endif
+
 
 } // FUNCTION : SetGridIC
 

@@ -198,7 +198,7 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    const double _Gamma_m1 = 1.0/(GAMMA-1.0);
 
    double v1, P0, P1, Phase, WaveK, WaveW;
-   double Dens, MomX, MomY, MomZ, Pres, Eint, Etot;
+   double Pres, Eint;
 
    v1    = Acoustic_Sign*Acoustic_Cs*Acoustic_RhoAmp;
    P0    = SQR(Acoustic_Cs)/GAMMA;
@@ -208,21 +208,34 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    WaveW = 2.0*M_PI/(Acoustic_WaveLength/Acoustic_Cs);
    Phase = WaveK*r - Acoustic_Sign*WaveW*Time + Acoustic_Phase0;
 
-   Dens  = 1.0 + Acoustic_RhoAmp*cos(Phase);
-   MomX  = Dens*( v1*cos(Phase) + Acoustic_v0 ) / sqrt(3.0);
-   MomY  = MomX;
-   MomZ  = MomX;
-   Pres  = P0 + P1*cos(Phase);
-   Eint  = EoS_DensPres2Eint_CPUPtr( Dens, Pres, NULL, EoS_AuxArray_Flt,
-                                     EoS_AuxArray_Int, h_EoS_Table );   // assuming EoS requires no passive scalars
-   Etot  = Hydro_ConEint2Etot( Dens, MomX, MomY, MomZ, Eint, 0.0 );     // do NOT include magnetic energy here
+   real Cons[NCOMP_FLUID];
+
+#  ifdef SRHD
+   real Prim[NCOMP_FLUID];
+   Prim[0] = 1.0 + Acoustic_RhoAmp*cos(Phase);
+   Prim[1] = ( v1*cos(Phase) + Acoustic_v0 ) / sqrt(3.0);
+   Prim[2] = Prim[1];
+   Prim[3] = Prim[1];
+   Prim[4] = P0 + P1*cos(Phase); 
+   Hydro_Pri2Con( Prim, Cons, NULL_BOOL, NULL_INT, NULL, NULL,
+                  EoS_Temp2HTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
+#  else
+   Cons[DENS] = 1.0 + Acoustic_RhoAmp*cos(Phase);
+   Cons[MOMX] = Cons[DENS]*( v1*cos(Phase) + Acoustic_v0 ) / sqrt(3.0);
+   Cons[MOMY] = Cons[MOMX];
+   Cons[MOMZ] = Cons[MOMX];
+   Pres       = P0 + P1*cos(Phase);
+   Eint       = EoS_DensPres2Eint_CPUPtr( Cons[DENS], Pres, NULL, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );  // assuming EoS requires no passive scalars
+   Cons[ENGY] = Hydro_ConEint2Etot( Cons[DENS], Cons[MOMX], Cons[MOMY],
+                                    Cons[MOMZ], Eint, 0.0 );     // do NOT include magnetic energy here
+#  endif
 
 // set the output array
-   fluid[DENS] = Dens;
-   fluid[MOMX] = MomX;
-   fluid[MOMY] = MomY;
-   fluid[MOMZ] = MomZ;
-   fluid[ENGY] = Etot;
+   fluid[DENS] = Cons[DENS];
+   fluid[MOMX] = Cons[MOMX];
+   fluid[MOMY] = Cons[MOMY];
+   fluid[MOMZ] = Cons[MOMZ];
+   fluid[ENGY] = Cons[ENGY];
 
 } // FUNCTION : SetGridIC
 

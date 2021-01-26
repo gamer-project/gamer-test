@@ -28,7 +28,8 @@ TESTPROB_ID                   1           # test problem ID [0]
                                           # 1: blast wave in pure hydro
 
 # code units (in cgs)
-OPT__UNIT                     0           # specify code units -> must set exactly 3 basic units below [0] ##USELESS FOR COMOVING##
+OPT__UNIT                     1           # specify code units -> must set exactly 3 basic units when HD or MHD is enabled  [0] ##USELESS FOR COMOVING##
+                                          #                    -> must set exactly 2 basic units when SRHD is enabled
 UNIT_L                        1.0         # length unit        (<=0 -> set to UNIT_V*UNIT_T or (UNIT_M/UNIT_D)^(1/3)) [1.0]
 UNIT_M                        1.0         # mass unit          (<=0 -> set to UNIT_D*UNIT_L^3)                        [1.0]
 UNIT_T                        1.0         # time unit          (<=0 -> set to UNIT_L/UNIT_V)                          [1.0]
@@ -48,6 +49,7 @@ OPT__BC_FLU_ZP                2           # fluid boundary condition at the +z f
 # time-step
 DT__FLUID                    -1.0         # dt criterion: fluid solver CFL factor (<0=auto) [-1.0]
 DT__FLUID_INIT               -1.0         # dt criterion: DT__FLUID at the first step (<0=auto) [-1.0]
+DT_SPEED_OF_LIGHT             1           # compute time step based on speed of light ## SRHD ONLY ##
 DT__SYNC_PARENT_LV            0.1         # dt criterion: allow dt to adjust by (1.0+DT__SYNC_PARENT) in order to synchronize
                                           #               with the parent level (for OPT__DT_LEVEL==3 only) [0.1]
 DT__SYNC_CHILDREN_LV          0.1         # dt criterion: allow dt to adjust by (1.0-DT__SYNC_CHILDREN) in order to synchronize
@@ -68,12 +70,15 @@ FLAG_BUFFER_SIZE_MAXM2_LV    -1           # FLAG_BUFFER_SIZE at the level MAX_LE
 MAX_LEVEL                     3           # maximum refinement level (0~NLEVEL-1) [NLEVEL-1]
 OPT__FLAG_RHO                 0           # flag: density (Input__Flag_Rho) [0]
 OPT__FLAG_RHO_GRADIENT        0           # flag: density gradient (Input__Flag_RhoGradient) [0]
-OPT__FLAG_PRES_GRADIENT       0           # flag: pressure gradient (Input__Flag_PresGradient) [0] ##HYDRO ONLY##
+OPT__FLAG_PRES_GRADIENT       1           # flag: pressure gradient (Input__Flag_PresGradient) [0] ##HYDRO ONLY##
+OPT__FLAG_ENGY_GRADIENT       0           # flag: pressure gradient (Input__Flag_EngyGradient) [0] ##SRHD/HYDRO##
+OPT__FLAG_LORENTZ_GRADIENT    0           # flag: Lorentz factor gradient (Input__Flag_LorentzGradient) [0] ##SRHD ONLY##
+OPT__FLAG_4VELOCITY           0           # flag: magnitude of 4-velocity (Input__Flag_4Velocity) [0] ##SRHD ONLY##
 OPT__FLAG_VORTICITY           0           # flag: vorticity (Input__Flag_Vorticity) [0] ##HYDRO ONLY##
 OPT__FLAG_JEANS               0           # flag: Jeans length (Input__Flag_Jeans) [0] ##HYDRO ONLY##
 OPT__FLAG_LOHNER_DENS         0           # flag: Lohner for mass density   (Input__Flag_Lohner) [0] ##BOTH HYDRO AND ELBDM##
 OPT__FLAG_LOHNER_ENGY         0           # flag: Lohner for energy density (Input__Flag_Lohner) [0] ##HYDRO ONLY##
-OPT__FLAG_LOHNER_PRES         1           # flag: Lohner for pressure       (Input__Flag_Lohner) [0] ##HYDRO ONLY##
+OPT__FLAG_LOHNER_PRES         0           # flag: Lohner for pressure       (Input__Flag_Lohner) [0] ##HYDRO ONLY##
 OPT__FLAG_LOHNER_TEMP         0           # flag: Lohner for temperature    (Input__Flag_Lohner) [0] ##HYDRO ONLY##
 OPT__FLAG_LOHNER_FORM         2           # form of Lohner: (1=FLASH-1, 2=FLASH-2, 3=form-invariant-1, 4=form-invariant-2) [2]
 OPT__FLAG_USER                0           # flag: user-defined (Input__Flag_User) -> edit "Flag_User.cpp" [0]

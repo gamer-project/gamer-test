@@ -13,6 +13,8 @@ void (*Init_ByFile_User_Ptr)( real fluid_out[], const real fluid_in[], const int
 static void Init_ByFile_AssignData( const char UM_Filename[], const int UM_lv, const int UM_NVar, const int UM_LoadNRank,
                                     const UM_IC_Format_t UM_Format );
 
+extern bool (*Flu_ResetByUser_Func_Ptr)( real fluid[], const double x, const double y, const double z, const double Time,
+                                         const int lv, double AuxArray[] );
 
 
 
@@ -411,6 +413,16 @@ void Init_ByFile_AssignData( const char UM_Filename[], const int UM_lv, const in
 
                   Init_ByFile_User_Ptr( fluid_out, fluid_in, UM_NVar, x, y, z, Time[UM_lv], UM_lv, NULL );
 
+#                 if( MODEL == HYDRO )
+//                check unphysical result
+#                 ifdef SRHD
+                  SRHD_CheckUnphysical( fluid_out, NULL, __FUNCTION__, __LINE__, true );
+#                 endif
+//                modify the initial condition if required
+                  if ( OPT__RESET_FLUID )
+                     Flu_ResetByUser_Func_Ptr( fluid_out, x, y, z, Time[UM_lv], UM_lv, NULL );
+#                 endif
+
                   for (int v=0; v<NCOMP_TOTAL; v++)
                      amr->patch[ amr->FluSg[UM_lv] ][UM_lv][PID]->fluid[v][k][j][i] = fluid_out[v];
                }}}
@@ -514,6 +526,17 @@ void Init_ByFile_Default( real fluid_out[], const real fluid_in[], const int nva
 #  elif ( DUAL_ENERGY == DE_EINT )
 #  error : DE_EINT is NOT supported yet !!
 #  endif
+
+
+// normalized fluid variables by UNIT
+   if ( OPT__UNIT )
+   {
+      fluid_out[DENS] = fluid_in[DENS] / UNIT_D;
+      fluid_out[MOMX] = fluid_in[MOMX] / UNIT_V / UNIT_D;
+      fluid_out[MOMY] = fluid_in[MOMY] / UNIT_V / UNIT_D;
+      fluid_out[MOMZ] = fluid_in[MOMZ] / UNIT_V / UNIT_D;
+      fluid_out[ENGY] = fluid_in[ENGY] / UNIT_P;
+   }
 
 // calculate the density field for ELBDM
 #  elif ( MODEL == ELBDM )

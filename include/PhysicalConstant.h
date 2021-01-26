@@ -37,6 +37,7 @@ const double Const_me            = 9.10938356e-28;          // electron mass
 // time units
 const double Const_s             = 1.0;                     // second
 const double Const_yr            = 3.15569252e7;            // year
+const double Const_kyr           = 1.0e3*Const_yr;
 const double Const_Myr           = 1.0e6*Const_yr;
 const double Const_Gyr           = 1.0e9*Const_yr;
 

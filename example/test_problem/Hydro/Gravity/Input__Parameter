@@ -29,7 +29,8 @@ TESTPROB_ID                   12          # test problem ID [0]
 
 
 # code units (in cgs)
-OPT__UNIT                     0           # specify code units -> must set exactly 3 basic units below [0] ##USELESS FOR COMOVING##
+OPT__UNIT                     1           # specify code units -> must set exactly 3 basic units when HD or MHD is enabled  [0] ##USELESS FOR COMOVING##
+                                          #                    -> must set exactly 2 basic units when SRHD is enabled
 UNIT_L                       -1.0         # length unit        (<=0 -> set to UNIT_V*UNIT_T or (UNIT_M/UNIT_D)^(1/3)) [-1.0]
 UNIT_M                       -1.0         # mass unit          (<=0 -> set to UNIT_D*UNIT_L^3)                        [-1.0]
 UNIT_T                       -1.0         # time unit          (<=0 -> set to UNIT_L/UNIT_V)                          [-1.0]

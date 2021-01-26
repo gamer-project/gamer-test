@@ -5,7 +5,7 @@
 
 #include "CUFLU.h"
 
-#if (  MODEL == HYDRO  &&  \
+#if (  MODEL == HYDRO  &&  !defined SRHD  &&  \
        ( RSOLVER == EXACT || CHECK_INTERMEDIATE == EXACT )  &&  \
        ( FLU_SCHEME == MHM || FLU_SCHEME == MHM_RP || FLU_SCHEME == CTU )  )
 

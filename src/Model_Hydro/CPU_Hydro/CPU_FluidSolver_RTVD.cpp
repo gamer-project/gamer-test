@@ -1,6 +1,6 @@
 #include "CUFLU.h"
 
-#if ( !defined GPU  &&  MODEL == HYDRO  &&  FLU_SCHEME == RTVD )
+#if ( !defined GPU  &&  MODEL == HYDRO  &&  FLU_SCHEME == RTVD && !defined SRHD  )
 
 
 

@@ -88,12 +88,14 @@ extern OptTimeStepLevel_t OPT__DT_LEVEL;
 // ============================================================================================================
 // (2-1) fluid solver in different models
 #if   ( MODEL == HYDRO )
-extern double           FlagTable_PresGradient[NLEVEL-1], FlagTable_Vorticity[NLEVEL-1], FlagTable_Jeans[NLEVEL-1];
+extern double           FlagTable_PresGradient[NLEVEL-1], FlagTable_Vorticity[NLEVEL-1], FlagTable_Jeans[NLEVEL-1],
+                        FlagTable_EngyGradient[NLEVEL-1];
 extern double           GAMMA, MINMOD_COEFF, MOLECULAR_WEIGHT, ISO_TEMP;
 extern LR_Limiter_t     OPT__LR_LIMITER;
 extern Opt1stFluxCorr_t OPT__1ST_FLUX_CORR;
 extern OptRSolver1st_t  OPT__1ST_FLUX_CORR_SCHEME;
-extern bool             OPT__FLAG_PRES_GRADIENT, OPT__FLAG_LOHNER_ENGY, OPT__FLAG_LOHNER_PRES, OPT__FLAG_LOHNER_TEMP;
+extern bool             OPT__FLAG_PRES_GRADIENT, OPT__FLAG_LOHNER_ENGY, OPT__FLAG_LOHNER_PRES, OPT__FLAG_LOHNER_TEMP,
+                        OPT__FLAG_ENGY_GRADIENT;
 extern bool             OPT__FLAG_VORTICITY, OPT__FLAG_JEANS, JEANS_MIN_PRES, OPT__LAST_RESORT_FLOOR;
 extern int              OPT__CK_NEGATIVE, JEANS_MIN_PRES_LEVEL, JEANS_MIN_PRES_NCELL;
 extern double           MIN_DENS, MIN_PRES, MIN_EINT;
@@ -107,6 +109,13 @@ extern bool             OPT__FIXUP_ELECTRIC, OPT__CK_INTERFACE_B, OPT__OUTPUT_CC
 extern int              OPT__CK_DIVERGENCE_B;
 extern double           UNIT_B;
 extern bool             OPT__INIT_BFIELD_BYFILE;
+#endif
+#ifdef SRHD
+extern double           FlagTable_4Velocity[NLEVEL-1], FlagTable_Mom_Over_Dens[NLEVEL-1],
+                        FlagTable_LorentzFactorGradient[NLEVEL-1];
+extern bool             OPT__FLAG_MOM_OVER_DENS, OPT__FLAG_4VELOCITY, OPT__FLAG_LORENTZ_GRADIENT;
+extern double           MIN_TEMP;
+extern int              DT_SPEED_OF_LIGHT;
 #endif
 
 #elif ( MODEL == ELBDM )
@@ -234,6 +243,17 @@ extern double                SF_CREATE_STAR_MAX_STAR_MFRAC;
 // (2-9) equation of state
 // =======================================================================================================
 #if ( MODEL == HYDRO )
+extern double EoS_AuxArray[EOS_NAUX_MAX];
+extern EoS_GUESS_t EoS_GuessHTilde_CPUPtr;
+extern EoS_H2TEM_t EoS_HTilde2Temp_CPUPtr;
+extern EoS_TEM2H_t EoS_Temp2HTilde_CPUPtr;
+extern EoS_TEM2C_t EoS_Temper2CSqr_CPUPtr;
+#ifdef GPU
+extern EoS_GUESS_t EoS_GuessHTilde_GPUPtr;
+extern EoS_H2TEM_t EoS_HTilde2Temp_GPUPtr;
+extern EoS_TEM2H_t EoS_Temp2HTilde_GPUPtr;
+extern EoS_TEM2C_t EoS_Temper2CSqr_GPUPtr;
+#endif
 extern double EoS_AuxArray_Flt[EOS_NAUX_MAX];
 extern int    EoS_AuxArray_Int[EOS_NAUX_MAX];
 extern EoS_DE2P_t EoS_DensEint2Pres_CPUPtr;

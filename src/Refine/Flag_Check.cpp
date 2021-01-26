@@ -4,6 +4,7 @@ static bool Check_Gradient( const int i, const int j, const int k, const real In
 static bool Check_Curl( const int i, const int j, const int k,
                         const real vx[][PS1][PS1], const real vy[][PS1][PS1], const real vz[][PS1][PS1],
                         const double Threshold );
+extern bool (*Flag_Region_Ptr)( const int i, const int j, const int k, const int lv, const int PID );
 extern bool (*Flag_User_Ptr)( const int i, const int j, const int k, const int lv, const int PID, const double *Threshold );
 
 
@@ -40,7 +41,7 @@ extern bool (*Flag_User_Ptr)( const int i, const int j, const int k, const int l
 //-------------------------------------------------------------------------------------------------------
 bool Flag_Check( const int lv, const int PID, const int i, const int j, const int k, const real dv,
                  const real Fluid[][PS1][PS1][PS1], const real Pot[][PS1][PS1], const real MagCC[][PS1][PS1][PS1],
-                 const real Vel[][PS1][PS1][PS1], const real Pres[][PS1][PS1],
+                 const real Vel[][PS1][PS1][PS1], const real Pres[][PS1][PS1], const real LorentzFactor[][PS1][PS1],
                  const real *Lohner_Var, const real *Lohner_Ave, const real *Lohner_Slope, const int Lohner_NVar,
                  const real ParCount[][PS1][PS1], const real ParDens[][PS1][PS1], const real JeansCoeff )
 {
@@ -51,7 +52,7 @@ bool Flag_Check( const int lv, const int PID, const int i, const int j, const in
 // ===========================================================================================
    if ( OPT__FLAG_REGION )
    {
-      if (  !Flag_Region( i, j, k, lv, PID )  )    return false;
+      if (  !Flag_Region_Ptr( i, j, k, lv, PID )  )    return false;
    }
 
 
@@ -95,12 +96,21 @@ bool Flag_Check( const int lv, const int PID, const int i, const int j, const in
 #  endif
 
 
+#  if ( MODEL == HYDRO )
 // check pressure gradient
 // ===========================================================================================
-#  if ( MODEL == HYDRO )
    if ( OPT__FLAG_PRES_GRADIENT )
    {
       Flag |= Check_Gradient( i, j, k, &Pres[0][0][0], FlagTable_PresGradient[lv] );
+      if ( Flag )    return Flag;
+   }
+
+
+// check gradient of reduced energy density
+// ===========================================================================================
+   if ( OPT__FLAG_ENGY_GRADIENT )
+   {
+      Flag |= Check_Gradient( i, j, k, &Fluid[ENGY][0][0][0], FlagTable_EngyGradient[lv] );
       if ( Flag )    return Flag;
    }
 #  endif
@@ -108,7 +118,7 @@ bool Flag_Check( const int lv, const int PID, const int i, const int j, const in
 
 // check vorticity
 // ===========================================================================================
-#  if ( MODEL == HYDRO )
+#  if ( MODEL == HYDRO  &&  !defined SRHD )
    if ( OPT__FLAG_VORTICITY )
    {
       Flag |= Check_Curl( i, j, k, Vel[0], Vel[1], Vel[2], FlagTable_Vorticity[lv] );
@@ -123,6 +133,62 @@ bool Flag_Check( const int lv, const int PID, const int i, const int j, const in
    if ( OPT__FLAG_CURRENT )
    {
       Flag |= Check_Curl( i, j, k, MagCC[0], MagCC[1], MagCC[2], FlagTable_Current[lv] );
+      if ( Flag )    return Flag;
+   }
+#  endif
+
+
+// check M/D in SRHD
+// ===========================================================================================
+#  ifdef SRHD
+   if ( OPT__FLAG_MOM_OVER_DENS )
+   {
+      real Cons[NCOMP_FLUID], M_D;
+      Cons[DENS]=Fluid[DENS][k][j][i];
+      Cons[MOMX]=Fluid[MOMX][k][j][i];
+      Cons[MOMY]=Fluid[MOMY][k][j][i];
+      Cons[MOMZ]=Fluid[MOMZ][k][j][i];
+
+      M_D = FABS( Cons[MOMX] ) + FABS( Cons[MOMY] ) + FABS( Cons[MOMZ] );
+
+      M_D /= Cons[DENS];
+
+      Flag |= ( M_D > FlagTable_Mom_Over_Dens[lv] );
+      if ( Flag )    return Flag;
+   }
+
+
+// check magnitude of 4-velocity
+// ===========================================================================================
+   if ( OPT__FLAG_4VELOCITY )
+   {
+      real Dens, MomX, MomY, MomZ, Engy;
+      real Cons[NCOMP_FLUID], Prim[NCOMP_FLUID], U, LorentzFactor;
+
+      Cons[DENS]=Fluid[DENS][k][j][i];
+      Cons[MOMX]=Fluid[MOMX][k][j][i];
+      Cons[MOMY]=Fluid[MOMY][k][j][i];
+      Cons[MOMZ]=Fluid[MOMZ][k][j][i];
+      Cons[ENGY]=Fluid[ENGY][k][j][i];
+
+      Hydro_Con2Pri( Cons, Prim, (real)NULL_REAL, NULL_BOOL, NULL_INT, NULL, NULL_BOOL,
+                     (real)NULL_REAL, EoS_DensEint2Pres_CPUPtr, EoS_DensPres2Eint_CPUPtr,
+                     EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr, EoS_AuxArray_Flt,
+                     EoS_AuxArray_Int, h_EoS_Table, NULL, &LorentzFactor );
+
+      U = SQRT( LorentzFactor*LorentzFactor - (real)1.0 );
+
+      Flag |= ( U > FlagTable_4Velocity[lv] );
+
+      if ( Flag )    return Flag;
+   }
+
+
+// check gradient of Lorentz factor
+// ===========================================================================================
+   if ( OPT__FLAG_LORENTZ_GRADIENT )
+   {
+      Flag |= Check_Gradient( i, j, k, &LorentzFactor[0][0][0], FlagTable_LorentzFactorGradient[lv] );
       if ( Flag )    return Flag;
    }
 #  endif

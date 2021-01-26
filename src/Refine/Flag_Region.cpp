@@ -1,6 +1,11 @@
 #include "GAMER.h"
 
 
+// declare as static so that other functions cannot invoke it directly and must use the function pointer
+static bool Flag_Region( const int i, const int j, const int k, const int lv, const int PID );
+
+// this function pointer may be overwritten by various test problem initializers
+bool (*Flag_Region_Ptr)( const int i, const int j, const int k, const int lv, const int PID ) = Flag_Region;
 
 
 //-------------------------------------------------------------------------------------------------------

@@ -167,6 +167,23 @@ void Aux_TakeNote()
       fprintf( Note, "MHD                             OFF\n" );
 #     endif
 
+#     ifdef SRHD
+      fprintf( Note, "SRHD                            ON\n" );
+#     ifdef REDUCED_ENERGY
+      fprintf( Note, "REDUCED_ENERGY                  ON\n" );
+#     else
+      fprintf( Note, "REDUCED_ENERGY                  OFF\n" );
+#     endif
+
+#     ifdef FOUR_VELOCITY
+      fprintf( Note, "FOUR_VELOCITY                  ON\n" );
+#     else
+      fprintf( Note, "FOUR_VELOCITY                  OFF\n" );
+#     endif
+#     else
+      fprintf( Note, "SRHD                            OFF\n" );
+#     endif
+
 #     ifdef COSMIC_RAY
       fprintf( Note, "COSMIC_RAY                      ON\n" );
 #     else
@@ -179,6 +196,8 @@ void Aux_TakeNote()
       fprintf( Note, "EOS                             EOS_ISOTHERMAL\n" );
 #     elif ( EOS == EOS_NUCLEAR )
       fprintf( Note, "EOS                             EOS_NUCLEAR\n" );
+#     elif ( EOS == EOS_TAUBMATHEWS )
+      fprintf( Note, "EOS                             EOS_TAUBMATHEWS\n" );
 #     elif ( EOS == EOS_TABULAR )
       fprintf( Note, "EOS                             EOS_TABULAR\n" );
 #     elif ( EOS == EOS_USER )
@@ -727,6 +746,9 @@ void Aux_TakeNote()
       fprintf( Note, "DT__MAX                        %14.7e\n",   DT__MAX                   );
       fprintf( Note, "DT__FLUID                       %13.7e\n",  DT__FLUID                 );
       fprintf( Note, "DT__FLUID_INIT                  %13.7e\n",  DT__FLUID_INIT            );
+#     ifdef SRHD
+      fprintf( Note, "DT_SPEED_OF_LIGHT               %d\n",      DT_SPEED_OF_LIGHT         );
+#     endif
 #     ifdef GRAVITY
       fprintf( Note, "DT__GRAVITY                     %13.7e\n",  DT__GRAVITY               );
 #     endif
@@ -765,10 +787,15 @@ void Aux_TakeNote()
       fprintf( Note, "OPT__FLAG_RHO_GRADIENT          %d\n",      OPT__FLAG_RHO_GRADIENT    );
 #     if ( MODEL == HYDRO )
       fprintf( Note, "OPT__FLAG_PRES_GRADIENT         %d\n",      OPT__FLAG_PRES_GRADIENT   );
+      fprintf( Note, "OPT__FLAG_ENGY_GRADIENT         %d\n",      OPT__FLAG_ENGY_GRADIENT   );
       fprintf( Note, "OPT__FLAG_VORTICITY             %d\n",      OPT__FLAG_VORTICITY       );
       fprintf( Note, "OPT__FLAG_JEANS                 %d\n",      OPT__FLAG_JEANS           );
 #     ifdef MHD
       fprintf( Note, "OPT__FLAG_CURRENT               %d\n",      OPT__FLAG_CURRENT         );
+#     endif
+#     ifdef SRHD
+      fprintf( Note, "OPT__FLAG_4VELOCITY             %d\n",      OPT__FLAG_4VELOCITY       );
+      fprintf( Note, "OPT__FLAG_LORENTZ_GRADIENT      %d\n",      OPT__FLAG_LORENTZ_GRADIENT);
 #     endif
 #     endif
 #     if ( MODEL == ELBDM )
@@ -1266,6 +1293,37 @@ void Aux_TakeNote()
          fprintf( Note, "\n\n");
       }
 
+      if ( OPT__FLAG_ENGY_GRADIENT )
+      {
+         fprintf( Note, "Flag Criterion (Reduced Energy Density Gradient in SRHD)\n" );
+         fprintf( Note, "***********************************************************************************\n" );
+         fprintf( Note, "  Level   Reduced Energy Density Gradient\n" );
+         for (int lv=0; lv<MAX_LEVEL; lv++)  fprintf( Note, "%7d%20.7e\n", lv, FlagTable_EngyGradient[lv] );
+         fprintf( Note, "***********************************************************************************\n" );
+         fprintf( Note, "\n\n");
+      }
+
+#     ifdef SRHD
+      if ( OPT__FLAG_LORENTZ_GRADIENT )
+      {
+         fprintf( Note, "Flag Criterion (Lorentz factor Gradient in SRHD)\n" );
+         fprintf( Note, "***********************************************************************************\n" );
+         fprintf( Note, "  Level   Lorentz factor Gradient\n" );
+         for (int lv=0; lv<MAX_LEVEL; lv++)  fprintf( Note, "%7d%20.7e\n", lv, FlagTable_LorentzFactorGradient[lv] );
+         fprintf( Note, "***********************************************************************************\n" );
+         fprintf( Note, "\n\n");
+      }
+
+      if ( OPT__FLAG_MOM_OVER_DENS )
+      {
+         fprintf( Note, "Flag Criterion ( Momentum over density in SRHD)\n" );
+         fprintf( Note, "***********************************************************************************\n" );
+         fprintf( Note, "  Level   Momentum over density\n" );
+         for (int lv=0; lv<MAX_LEVEL; lv++)  fprintf( Note, "%7d%20.7e\n", lv, FlagTable_Mom_Over_Dens[lv] );
+         fprintf( Note, "***********************************************************************************\n" );
+         fprintf( Note, "\n\n");
+      }
+#     else
       if ( OPT__FLAG_VORTICITY )
       {
          fprintf( Note, "Flag Criterion (Vorticity in HYDRO)\n" );
@@ -1285,6 +1343,7 @@ void Aux_TakeNote()
          fprintf( Note, "***********************************************************************************\n" );
          fprintf( Note, "\n\n");
       }
+#     endif
 
 #     ifdef MHD
       if ( OPT__FLAG_CURRENT )

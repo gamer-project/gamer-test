@@ -1,6 +1,6 @@
 #include "GAMER.h"
 
-#if ( MODEL == HYDRO )
+#if ( MODEL == HYDRO  &&  !defined SRHD )
 
 
 // 1: check negative values
@@ -71,7 +71,7 @@ void Hydro_Aux_Check_Negative( const int lv, const int Mode, const char *comment
 #           endif // MHD
             Pres = Hydro_Con2Pres( Fluid[DENS], Fluid[MOMX], Fluid[MOMY], Fluid[MOMZ], Fluid[ENGY], Fluid+NCOMP_FLUID,
                                    CheckMinPres_No, NULL_REAL, Emag,
-                                   EoS_DensEint2Pres_CPUPtr, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
+                                   EoS_DensEint2Pres_CPUPtr, NULL, NULL, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
 #           endif // DUAL_ENERGY
 
             if ( Mode == 1  ||  Mode == 3 )

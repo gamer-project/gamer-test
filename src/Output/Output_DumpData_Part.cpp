@@ -129,8 +129,20 @@ void Output_DumpData_Part( const OptOutputPart_t Part, const bool BaseOnly, cons
 
 //          other derived fields
 #           if ( MODEL == HYDRO )
+#           ifdef SRHD
+            fprintf( File, "%14s", "rho"  );
+            fprintf( File, "%14s", "Ux" );
+            fprintf( File, "%14s", "Uy" );
+            fprintf( File, "%14s", "Uz" );
+            fprintf( File, "%14s", "Pressure"      );
+            fprintf( File, "%14s", "LorentzFactor" );
+            fprintf( File, "%14s", "Vx" );
+            fprintf( File, "%14s", "Vy" );
+            fprintf( File, "%14s", "Vz" );
+#           else
             fprintf( File, "%14s", "Pressure" );
             fprintf( File, "%14s", "Sound speed" );
+#           endif
 #           endif
 
             fprintf( File, "\n" );
@@ -235,6 +247,18 @@ void WriteFile( FILE *File, const int lv, const int PID, const int i, const int 
 // output all variables in the fluid array
    for (int v=0; v<NCOMP_TOTAL; v++)   fprintf( File, " %13.6e", u[v] );
 
+// primitive variables in SRHD
+#  ifdef SRHD
+   real Pri[NCOMP_FLUID], LorentzFactor;
+
+   Hydro_Con2Pri( u, Pri, (real)NULL_REAL, NULL_BOOL, NULL_INT, NULL, NULL_BOOL,
+                  (real)NULL_REAL, EoS_DensEint2Pres_CPUPtr, EoS_DensPres2Eint_CPUPtr,
+                  EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr, EoS_AuxArray_Flt,
+                  EoS_AuxArray_Int, h_EoS_Table, NULL, &LorentzFactor );
+
+   for (int v=0; v<NCOMP_TOTAL; v++)   fprintf( File, " %13.6e", Pri[v] );
+#  endif
+
 // magnetic field
 #  if ( MODEL == HYDRO )
 #  ifdef MHD
@@ -254,14 +278,30 @@ void WriteFile( FILE *File, const int lv, const int PID, const int i, const int 
 #  endif
 
 // output other derived fields
-#  if ( MODEL == HYDRO )
+#  if   ( MODEL == HYDRO )
    const bool CheckMinPres_No = false;
-   const real Pres = Hydro_Con2Pres( u[DENS], u[MOMX], u[MOMY], u[MOMZ], u[ENGY], u+NCOMP_FLUID,
-                                     CheckMinPres_No, NULL_REAL, Emag, EoS_DensEint2Pres_CPUPtr,
-                                     EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
+   const real Pres = Hydro_Con2Pres(u[DENS],u[MOMX],u[MOMY],u[MOMZ],u[ENGY],u+NCOMP_FLUID,
+                                    CheckMinPres_No,NULL_REAL,Emag,
+                                    EoS_DensEint2Pres_CPUPtr,
+                                    EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                                    EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
+#  ifdef SRHD
+   const real Cs   = SQRT( EoS_Temper2CSqr_CPUPtr( Pri[0], Pres, NULL, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table ) );
+#  else
    const real Cs   = SQRT(  EoS_DensPres2CSqr_CPUPtr( u[DENS], Pres, u+NCOMP_FLUID, EoS_AuxArray_Flt, EoS_AuxArray_Int,
                                                       h_EoS_Table )  );
+#  endif
+
    fprintf( File, " %13.6e %13.6e", Pres, Cs );
+#  if   ( defined SRHD )
+// output Lorentz factor
+   fprintf( File, " %13.6e", LorentzFactor );
+
+// output 3-velocities
+   fprintf( File, " %13.6e", Pri[1]/LorentzFactor );
+   fprintf( File, " %13.6e", Pri[2]/LorentzFactor );
+   fprintf( File, " %13.6e", Pri[3]/LorentzFactor );
+#  endif
 #  endif
 
    fprintf( File, "\n" );

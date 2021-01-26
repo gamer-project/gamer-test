@@ -17,7 +17,9 @@ void Init_Load_FlagCriteria()
 
 #  if ( MODEL != HYDRO )
    const bool OPT__FLAG_PRES_GRADIENT = false;
+   const bool OPT__FLAG_ENGY_GRADIENT = false;
    double *FlagTable_PresGradient     = NULL;
+   double *FlagTable_EngyGradient     = NULL;
 
    const bool OPT__FLAG_VORTICITY     = false;
    double *FlagTable_Vorticity        = NULL;
@@ -30,6 +32,19 @@ void Init_Load_FlagCriteria()
    const bool OPT__FLAG_CURRENT       = false;
    double *FlagTable_Current          = NULL;
 #  endif
+
+#  ifndef SRHD
+   const bool OPT__FLAG_LORENTZ_GRADIENT   = false;
+   double *FlagTable_LorentzFactorGradient = NULL;
+
+
+   const bool OPT__FLAG_4VELOCITY          = false;
+   double *FlagTable_4Velocity             = NULL;
+
+   const bool OPT__FLAG_MOM_OVER_DENS      = false;
+   double *FlagTable_Mom_Over_Dens         = NULL;
+#  endif
+
 
 #  if ( MODEL != ELBDM )
    const bool OPT__FLAG_ENGY_DENSITY  = false;
@@ -55,22 +70,26 @@ void Init_Load_FlagCriteria()
 #  error : unsupported MODEL !!
 #  endif
 
-   const int  NFlagMode         = 12;
+   const int  NFlagMode         = 16;
    const bool Flag[NFlagMode]   = { OPT__FLAG_RHO, OPT__FLAG_RHO_GRADIENT, OPT__FLAG_PRES_GRADIENT,
                                     OPT__FLAG_ENGY_DENSITY, OPT__FLAG_LOHNER, OPT__FLAG_USER,
                                     (bool)OPT__FLAG_NPAR_PATCH, OPT__FLAG_NPAR_CELL, OPT__FLAG_PAR_MASS_CELL,
-                                    OPT__FLAG_VORTICITY, OPT__FLAG_JEANS, OPT__FLAG_CURRENT };
+                                    OPT__FLAG_VORTICITY, OPT__FLAG_JEANS, OPT__FLAG_CURRENT, OPT__FLAG_ENGY_GRADIENT,
+                                    OPT__FLAG_4VELOCITY, OPT__FLAG_MOM_OVER_DENS, OPT__FLAG_LORENTZ_GRADIENT };
    const char ModeName[][100]   = { "OPT__FLAG_RHO", "OPT__FLAG_RHO_GRADIENT", "OPT__FLAG_PRES_GRADIENT",
                                     "OPT__FLAG_ENGY_DENSITY", "OPT__FLAG_LOHNER", "OPT__FLAG_USER",
                                     "OPT__FLAG_NPAR_PATCH", "OPT__FLAG_NPAR_CELL", "OPT__FLAG_PAR_MASS_CELL",
-                                    "OPT__FLAG_VORTICITY", "OPT__FLAG_JEANS", "OPT__FLAG_CURRENT" };
+                                    "OPT__FLAG_VORTICITY", "OPT__FLAG_JEANS", "OPT__FLAG_CURRENT", "OPT__FLAG_ENGY_GRADIENT",
+                                    "OPT__FLAG_4VELOCITY", "OPT__FLAG_MOM_OVER_DENS", "OPT__FLAG_LORENTZ_GRADIENT" };
    const char FileName[][100]   = { "Input__Flag_Rho", "Input__Flag_RhoGradient", "Input__Flag_PresGradient",
                                     "Input__Flag_EngyDensity", "Input__Flag_Lohner", "Input__Flag_User",
                                     "Input__Flag_NParPatch", "Input__Flag_NParCell", "Input__Flag_ParMassCell",
-                                    "Input__Flag_Vorticity", "Input__Flag_Jeans", "Input__Flag_Current" };
+                                    "Input__Flag_Vorticity", "Input__Flag_Jeans", "Input__Flag_Current", "Input__Flag_EngyGradient",
+                                    "Input__Flag_4Velocity", "Input__Flag_Mom_Over_Dens", "Input__Flag_LorentzGradient" };
    double *FlagTable[NFlagMode] = { FlagTable_Rho, FlagTable_RhoGradient, FlagTable_PresGradient,
                                     NULL, NULL, NULL, NULL, NULL, FlagTable_ParMassCell,
-                                    FlagTable_Vorticity, FlagTable_Jeans, FlagTable_Current };
+                                    FlagTable_Vorticity, FlagTable_Jeans, FlagTable_Current, FlagTable_EngyGradient,
+                                    FlagTable_4Velocity, FlagTable_Mom_Over_Dens, FlagTable_LorentzFactorGradient };
 
    FILE *File;
    char *input_line = NULL, TargetName[100];
@@ -93,10 +112,16 @@ void Init_Load_FlagCriteria()
 
 #     if   ( MODEL == HYDRO )
       FlagTable_PresGradient[lv]    = -1.0;
+      FlagTable_EngyGradient[lv]    = -1.0;
       FlagTable_Vorticity   [lv]    = -1.0;
       FlagTable_Jeans       [lv]    = -1.0;
 #     ifdef MHD
       FlagTable_Current     [lv]    = -1.0;
+#     endif
+#     ifdef SRHD
+      FlagTable_4Velocity             [lv]    = -1.0;
+      FlagTable_Mom_Over_Dens         [lv]    = -1.0;
+      FlagTable_LorentzFactorGradient [lv]    = -1.0;
 #     endif
 
 #     elif ( MODEL == ELBDM )

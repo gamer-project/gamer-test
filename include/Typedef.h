@@ -50,7 +50,7 @@ const TestProbID_t
    TESTPROB_HYDRO_MHD_ORSZAG_TANG_VORTEX       =   14,
    TESTPROB_HYDRO_MHD_LINEAR_WAVE              =   15,
    TESTPROB_HYDRO_JEANS_INSTABILITY            =   16,
-
+   TESTPROB_HYDRO_JETS                         =   17,
    TESTPROB_ELBDM_EXTPOT                       = 1000;
 
 
@@ -382,7 +382,14 @@ const SF_CreateStarScheme_t
 #endif
 
 
-// function pointers
+typedef real (*EoS_GUESS_t)( const real Cons[], real* const Constant, const double AuxArray_Flt[],
+                             const int AuxArray_Int[], const real *const Table[EOS_NTABLE_MAX] );
+typedef void (*EoS_H2TEM_t)( const real HTilde, real* const Temp, real* const DiffTemp, const real Passive[],
+                             const double AuxArray_Flt[], const int AuxArray_Int[], const real *const Table[EOS_NTABLE_MAX] );
+typedef real (*EoS_TEM2H_t)( const real Temp, const real Passive[], const double AuxArray_Flt[],
+                             const int AuxArray_Int[], const real *const Table[EOS_NTABLE_MAX] );
+typedef real (*EoS_TEM2C_t)( const real Rho, const real Pres, const real Passive[], const double AuxArray_Flt[],
+                             const int AuxArray_Int[], const real *const Table[EOS_NTABLE_MAX] );
 typedef real (*EoS_DE2P_t)( const real Dens, const real Eint, const real Passive[], const double AuxArray_Flt[],
                             const int AuxArray_Int[], const real *const Table[EOS_NTABLE_MAX] );
 typedef real (*EoS_DP2E_t)( const real Dens, const real Pres, const real Passive[], const double AuxArray_Flt[],

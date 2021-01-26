@@ -7,18 +7,19 @@
 // =======================================================================================
 typedef int Riemann_t;
 const Riemann_t
-   SOD_SHOCK_TUBE = 0
-  ,STRONG_SHOCK   = 1
-  ,TWO_SHOCKS     = 2
-  ,EINFELDT_1203  = 3
-  ,EINFELDT_1125  = 4
-  ,SONIC_RARE     = 5
+   SOD_SHOCK_TUBE =  0
+  ,STRONG_SHOCK   =  1
+  ,TWO_SHOCKS     =  2
+  ,EINFELDT_1203  =  3
+  ,EINFELDT_1125  =  4
+  ,SONIC_RARE     =  5
 #ifdef MHD
-  ,RJ2A           = 6
-  ,TORRILHON      = 7
-  ,BRIO_WU        = 8
+  ,RJ2A           =  6
+  ,TORRILHON      =  7
+  ,BRIO_WU        =  8
 #endif
-  ,NOH            = 9
+  ,NOH            =  9
+  ,USER_DEFINED   = 10
   ;
 
 static Riemann_t Riemann_Prob;         // target Riemann problem
@@ -122,9 +123,19 @@ void SetParameter()
 // ********************************************************************************************************************************
 // ReadPara->Add( "KEY_IN_THE_FILE",   &VARIABLE,              DEFAULT,       MIN,              MAX               );
 // ********************************************************************************************************************************
-   ReadPara->Add( "Riemann_Prob",      &Riemann_Prob,          -1,            0,                9                 );
+   ReadPara->Add( "Riemann_Prob",      &Riemann_Prob,          -1,            0,                11                );
    ReadPara->Add( "Riemann_LR",        &Riemann_LR,             1,            NoMin_int,        NoMax_int         );
    ReadPara->Add( "Riemann_XYZ",       &Riemann_XYZ,            0,            0,                2                 );
+   ReadPara->Add( "Riemann_RhoL",      &Riemann_RhoL,           __DBL_MAX__,  __DBL_MIN__,      __DBL_MAX__       );
+   ReadPara->Add( "Riemann_RhoR",      &Riemann_RhoR,           __DBL_MAX__,  __DBL_MIN__,      __DBL_MAX__       );
+   ReadPara->Add( "Riemann_VelL",      &Riemann_VelL,           __DBL_MAX__, -__DBL_MAX__,      __DBL_MAX__       );
+   ReadPara->Add( "Riemann_VelR",      &Riemann_VelR,           __DBL_MAX__, -__DBL_MAX__,      __DBL_MAX__       );
+   ReadPara->Add( "Riemann_PreL",      &Riemann_PreL,           __DBL_MAX__,  __DBL_MIN__,      __DBL_MAX__       );
+   ReadPara->Add( "Riemann_PreR",      &Riemann_PreR,           __DBL_MAX__,  __DBL_MIN__,      __DBL_MAX__       );
+   ReadPara->Add( "Riemann_VelL_T1",   &Riemann_VelL_T1,        __DBL_MAX__, -__DBL_MAX__,      __DBL_MAX__       );
+   ReadPara->Add( "Riemann_VelL_T2",   &Riemann_VelL_T2,        __DBL_MAX__, -__DBL_MAX__,      __DBL_MAX__       );
+   ReadPara->Add( "Riemann_VelR_T1",   &Riemann_VelR_T1,        __DBL_MAX__, -__DBL_MAX__,      __DBL_MAX__       );
+   ReadPara->Add( "Riemann_VelR_T2",   &Riemann_VelR_T2,        __DBL_MAX__, -__DBL_MAX__,      __DBL_MAX__       );
    ReadPara->Add( "Riemann_Pos",       &Riemann_Pos,            NoDef_double, NoMin_double,     NoMax_double      );
    ReadPara->Add( "Riemann_Width",     &Riemann_Width,          NoDef_double, Eps_double,       NoMax_double      );
 
@@ -140,7 +151,7 @@ void SetParameter()
    {
       case SOD_SHOCK_TUBE : Riemann_RhoL = 1.0;    Riemann_VelL = 0.0;  Riemann_PreL = 1.0;  Riemann_VelL_T1 = 0.0;  Riemann_VelL_T2 = 0.0;
                             Riemann_RhoR = 0.125;  Riemann_VelR = 0.0;  Riemann_PreR = 0.1;  Riemann_VelR_T1 = 0.0;  Riemann_VelR_T2 = 0.0;
-                            Riemann_EndT = 0.1;
+                            Riemann_EndT = 0.1; ;  Riemann_Pos = 0.5;
 #                           ifdef MHD
                             Riemann_Mag = Riemann_MagL_T1 = Riemann_MagL_T2 = Riemann_MagR_T1 = Riemann_MagR_T2 = 0.0;
 #                           endif
@@ -149,7 +160,7 @@ void SetParameter()
 
       case STRONG_SHOCK   : Riemann_RhoL = 1250.0;  Riemann_VelL = 0.0;  Riemann_PreL = 500.0;  Riemann_VelL_T1 = 0.0;  Riemann_VelL_T2 = 0.0;
                             Riemann_RhoR =  125.0;  Riemann_VelR = 0.0;  Riemann_PreR =   5.0;  Riemann_VelR_T1 = 0.0;  Riemann_VelR_T2 = 0.0;
-                            Riemann_EndT = 0.4;
+                            Riemann_EndT = 0.4;     Riemann_Pos = 0.5;
 #                           ifdef MHD
                             Riemann_Mag = Riemann_MagL_T1 = Riemann_MagL_T2 = Riemann_MagR_T1 = Riemann_MagR_T2 = 0.0;
 #                           endif
@@ -158,7 +169,7 @@ void SetParameter()
 
       case TWO_SHOCKS     : Riemann_RhoL = 1.0;  Riemann_VelL = 3.0;  Riemann_PreL = 1.0;  Riemann_VelL_T1 = 0.0;  Riemann_VelL_T2 = 0.0;
                             Riemann_RhoR = 2.0;  Riemann_VelR = 1.0;  Riemann_PreR = 1.0;  Riemann_VelR_T1 = 0.0;  Riemann_VelR_T2 = 0.0;
-                            Riemann_EndT = 0.1;
+                            Riemann_EndT = 0.1;  Riemann_Pos = 0.5;
 #                           ifdef MHD
                             Riemann_Mag = Riemann_MagL_T1 = Riemann_MagL_T2 = Riemann_MagR_T1 = Riemann_MagR_T2 = 0.0;
 #                           endif
@@ -167,7 +178,7 @@ void SetParameter()
 
       case EINFELDT_1203  : Riemann_RhoL = 1.0;  Riemann_VelL = -2.0;  Riemann_PreL = GAMMA-1.0;  Riemann_VelL_T1 = 0.0;  Riemann_VelL_T2 = 0.0;
                             Riemann_RhoR = 1.0;  Riemann_VelR = +2.0;  Riemann_PreR = GAMMA-1.0;  Riemann_VelR_T1 = 0.0;  Riemann_VelR_T2 = 0.0;
-                            Riemann_EndT = 0.1;
+                            Riemann_EndT = 0.1;  Riemann_Pos = 0.5;
 #                           ifdef MHD
                             Riemann_Mag = Riemann_MagL_T1 = Riemann_MagL_T2 = Riemann_MagR_T1 = Riemann_MagR_T2 = 0.0;
 #                           endif
@@ -177,7 +188,7 @@ void SetParameter()
 
       case EINFELDT_1125  : Riemann_RhoL = 1.0;  Riemann_VelL = -1.0;  Riemann_PreL = 2.5*(GAMMA-1.0);  Riemann_VelL_T1 = -2.0;  Riemann_VelL_T2 = 0.0;
                             Riemann_RhoR = 1.0;  Riemann_VelR = +1.0;  Riemann_PreR = 2.5*(GAMMA-1.0);  Riemann_VelR_T1 = +2.0;  Riemann_VelR_T2 = 0.0;
-                            Riemann_EndT = 0.1;
+                            Riemann_EndT = 0.1;  Riemann_Pos = 0.5;
 #                           ifdef MHD
                             Riemann_Mag = Riemann_MagL_T1 = Riemann_MagL_T2 = Riemann_MagR_T1 = Riemann_MagR_T2 = 0.0;
 #                           endif
@@ -187,7 +198,7 @@ void SetParameter()
 
       case SONIC_RARE     : Riemann_RhoL = 1.0;    Riemann_VelL = 0.75;  Riemann_PreL = 1.0;  Riemann_VelL_T1 = 0.0;  Riemann_VelL_T2 = 0.0;
                             Riemann_RhoR = 0.125;  Riemann_VelR = 0.0;   Riemann_PreR = 0.1;  Riemann_VelR_T1 = 0.0;  Riemann_VelR_T2 = 0.0;
-                            Riemann_EndT = 0.1;
+                            Riemann_EndT = 0.1;  Riemann_Pos = 0.5;
 #                           ifdef MHD
                             Riemann_Mag = Riemann_MagL_T1 = Riemann_MagL_T2 = Riemann_MagR_T1 = Riemann_MagR_T2 = 0.0;
 #                           endif
@@ -197,7 +208,7 @@ void SetParameter()
 #     ifdef MHD
       case RJ2A           : Riemann_RhoL = 1.08;  Riemann_VelL = 1.2;  Riemann_PreL = 0.95;  Riemann_VelL_T1 = 0.01;  Riemann_VelL_T2 = 0.5;
                             Riemann_RhoR = 1.0;   Riemann_VelR = 0.0;  Riemann_PreR = 1.0;   Riemann_VelR_T1 = 0.0;   Riemann_VelR_T2 = 0.0;
-                            Riemann_EndT = 0.2;
+                            Riemann_EndT = 0.2;  Riemann_Pos = 0.5;
                             Riemann_MagL_T1 = 3.6/sqrt(4.0*M_PI);  Riemann_MagL_T2 = 2.0/sqrt(4.0*M_PI);
                             Riemann_MagR_T1 = 4.0/sqrt(4.0*M_PI);  Riemann_MagR_T2 = 2.0/sqrt(4.0*M_PI);
                             Riemann_Mag     = 2.0/sqrt(4.0*M_PI);
@@ -206,7 +217,7 @@ void SetParameter()
 
       case TORRILHON      : Riemann_RhoL = 1.0;  Riemann_VelL = 0.0;   Riemann_PreL = 1.0;  Riemann_VelL_T1 = 0.0;  Riemann_VelL_T2 = 0.0;
                             Riemann_RhoR = 0.2;  Riemann_VelR = 0.0;   Riemann_PreR = 0.2;  Riemann_VelR_T1 = 0.0;  Riemann_VelR_T2 = 0.0;
-                            Riemann_EndT = 0.08;
+                            Riemann_EndT = 0.08;  Riemann_Pos = 0.5;
                             Riemann_MagL_T1 = 1.0;       Riemann_MagL_T2 = 0.0;
                             Riemann_MagR_T1 = cos(3.0);  Riemann_MagR_T2 = sin(3.0);
                             Riemann_Mag     = 1.0;
@@ -215,7 +226,7 @@ void SetParameter()
 
       case BRIO_WU        : Riemann_RhoL = 1.0;    Riemann_VelL = 0.0;   Riemann_PreL = 1.0;  Riemann_VelL_T1 = 0.0;  Riemann_VelL_T2 = 0.0;
                             Riemann_RhoR = 0.125;  Riemann_VelR = 0.0;   Riemann_PreR = 0.1;  Riemann_VelR_T1 = 0.0;  Riemann_VelR_T2 = 0.0;
-                            Riemann_EndT = 0.08;
+                            Riemann_EndT = 0.08;  Riemann_Pos = 0.5;
                             Riemann_MagL_T1 = +1.0;  Riemann_MagL_T2 = 0.0;
                             Riemann_MagR_T1 = -1.0;  Riemann_MagR_T2 = 0.0;
                             Riemann_Mag     = 0.75;
@@ -225,11 +236,14 @@ void SetParameter()
 
       case NOH            : Riemann_RhoL = 1.0;  Riemann_VelL = +1.0;  Riemann_PreL = 1.0e-6;  Riemann_VelL_T1 = 0.0;  Riemann_VelL_T2 = 0.0;
                             Riemann_RhoR = 1.0;  Riemann_VelR = -1.0;  Riemann_PreR = 1.0e-6;  Riemann_VelR_T1 = 0.0;  Riemann_VelR_T2 = 0.0;
-                            Riemann_EndT = 0.5;
+                            Riemann_EndT = 0.5;  Riemann_Pos = 0.5;
 #                           ifdef MHD
                             Riemann_Mag = Riemann_MagL_T1 = Riemann_MagL_T2 = Riemann_MagR_T1 = Riemann_MagR_T2 = 0.0;
 #                           endif
                             sprintf( Riemann_Name, "Noh's strong shock" );
+                            break;
+
+      case USER_DEFINED   : sprintf( Riemann_Name, "user defined" );
                             break;
 
       default : Aux_Error( ERROR_INFO, "unsupported Riemann problem (%d) !!\n", Riemann_Prob );
@@ -335,6 +349,9 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
 
    double r, Pres, Eint;
    int    MomIdx[3];
+#  ifdef SRHD
+   real Prim[NCOMP_FLUID], Cons[NCOMP_FLUID];
+#  endif
 
    switch ( Riemann_XYZ )
    {
@@ -357,11 +374,23 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    const double dPre = 0.5*( Riemann_PreR    - Riemann_PreL    );
    const double aPre = 0.5*( Riemann_PreR    + Riemann_PreL    );
 
+#  ifdef SRHD
+   Prim[0] = (real)aRho + dRho*Tanh;
+   Prim[1] = (real)aVel + dVel*Tanh; 
+   Prim[2] = (real)aVT1 + dVT1*Tanh;
+   Prim[3] = (real)aVT2 + dVT2*Tanh;
+   Prim[4] = (real)aPre + dPre*Tanh;
+
+   Hydro_Pri2Con( Prim, fluid, NULL_BOOL, NULL_INT, NULL, NULL,
+                  EoS_Temp2HTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr, EoS_AuxArray_Flt,
+                  EoS_AuxArray_Int, h_EoS_Table, NULL );
+#  else
    fluid[ DENS      ] =   aRho + dRho*Tanh;
    fluid[ MomIdx[0] ] = ( aVel + dVel*Tanh )*fluid[DENS];
    fluid[ MomIdx[1] ] = ( aVT1 + dVT1*Tanh )*fluid[DENS];
    fluid[ MomIdx[2] ] = ( aVT2 + dVT2*Tanh )*fluid[DENS];
    Pres               =   aPre + dPre*Tanh;
+#  endif
 
    if ( Riemann_LR < 0 )
    {
@@ -370,12 +399,14 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
       fluid[ MomIdx[2] ] *= -1.0;
    }
 
+#ifndef SRHD
 // compute and store the total gas energy
    Eint = EoS_DensPres2Eint_CPUPtr( fluid[DENS], Pres, fluid+NCOMP_FLUID,
                                     EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
 
 // do NOT include magnetic energy here
    fluid[ENGY] = Hydro_ConEint2Etot( fluid[DENS], fluid[MOMX], fluid[MOMY], fluid[MOMZ], Eint, 0.0 );
+#endif
 
 } // FUNCTION : SetGridIC
 

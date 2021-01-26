@@ -64,7 +64,10 @@ void Hydro_FullStepUpdate( const real g_Input[][ CUBE(FLU_NXT) ], real g_Output[
    const int  didx_flux[3] = { 1, N_FL_FLUX, SQR(N_FL_FLUX) };
    const real dt_dh        = dt/dh;
 
-   real dFlux[3][NCOMP_TOTAL], Output_1Cell[NCOMP_TOTAL], Emag;
+#  if ( defined BAROTROPIC_EOS && defined DUAL_ENERGY )
+   real Emag;
+#  endif
+   real dFlux[3][NCOMP_TOTAL], Output_1Cell[NCOMP_TOTAL];
 
 
    const int size_ij = SQR(PS2);

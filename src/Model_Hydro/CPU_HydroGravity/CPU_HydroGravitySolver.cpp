@@ -3,6 +3,15 @@
 #if ( MODEL == HYDRO  &&  defined GRAVITY )
 
 
+// external functions
+#ifdef __CUDACC__
+ 
+#include "../GPU_Hydro/CUFLU_Shared_FluUtility.cu"
+ 
+#else
+# include "../../../include/Prototype.h"
+#endif // #ifdef __CUDACC__ ... else ...
+
 
 // include c_ExtAcc_AuxArray[]
 #ifdef __CUDACC__
@@ -14,8 +23,12 @@
 
 //-----------------------------------------------------------------------------------------
 // Function    :  CPU/CUPOT_HydroGravitySolver
-// Description :  Advances the momentum and energy density of a group of patches by gravitational acceleration
-//                (including external gravity)
+// Description :  1. Advances the momentum and energy density of a group of patches by gravitational acceleration
+//                   (including external gravity)
+//                2. Note the SRHD still use the Newtonian gravity as a source term in the relativistic Euler equations.
+//                   --> Hence SRHD with the Newtonian gravity can only simulate the low-mass relativistic component
+//                       embedded in giant gas sphere.
+//                       e.g., relativistic AGN jet in gas sphere.
 //
 // Note        :  1. Currently this function does NOT ensure the consistency between internal energy and
 //                   dual-energy variable (e.g., entropy)
@@ -61,7 +74,10 @@ void CUPOT_HydroGravitySolver(
    const real   g_Emag_Array   [][ CUBE(PS1) ],
    const real dt, const real dh, const bool P5_Gradient,
    const bool UsePot, const OptExtAcc_t ExtAcc, const ExtAcc_t ExtAcc_Func,
-   const double TimeNew, const double TimeOld, const real MinEint )
+   const double TimeNew, const double TimeOld, const real MinEint,
+   const EoS_GUESS_t EoS_GuessHTilde_Func,
+   const EoS_TEM2H_t EoS_Temp2HTilde_Func,
+   const EoS_H2TEM_t EoS_HTilde2Temp_Func )
 #else
 void CPU_HydroGravitySolver(
          real   g_Flu_Array_New[][GRA_NIN][ CUBE(PS1) ],
@@ -75,7 +91,13 @@ void CPU_HydroGravitySolver(
    const real dt, const real dh, const bool P5_Gradient,
    const bool UsePot, const OptExtAcc_t ExtAcc, const ExtAcc_t ExtAcc_Func,
    const double c_ExtAcc_AuxArray[],
-   const double TimeNew, const double TimeOld, const real MinEint )
+   const double TimeNew, const double TimeOld, const real MinEint,
+   const EoS_GUESS_t EoS_GuessHTilde_Func,
+   const EoS_TEM2H_t EoS_Temp2HTilde_Func,
+   const EoS_H2TEM_t EoS_HTilde2Temp_Func,
+   const double c_EoS_AuxArray_Flt[],
+   const int    c_EoS_AuxArray_Int[],
+   const real *const c_EoS_Table[EOS_NTABLE_MAX] )
 #endif
 {
 
@@ -106,6 +128,9 @@ void CPU_HydroGravitySolver(
 #  endif
 #  endif // #ifdef GAMER_DEBUG
 
+#if ( defined UNSPLIT_GRAVITY && defined SRHD )
+# error: SRHD do not support UNSPLIT_GRAVITY !!
+#endif
 
    const real Gra_Const   = ( P5_Gradient ) ? -dt/(12.0*dh) : -dt/(2.0*dh);
    const int  PS1_sqr     = SQR(PS1);
@@ -165,8 +190,14 @@ void CPU_HydroGravitySolver(
 //    _g0: indices for the arrays without any ghost zone
       CGPU_LOOP( idx_g0, CUBE(PS1) )
       {
+#        if ( defined SRHD && defined UNSPLIT_GRAVITY )
+         real Etot_in;
+#        elif ( !defined SRHD )
 //       Enki = non-kinetic energy (i.e. Etot - Ekin)
-         real acc_new[3]={0.0, 0.0, 0.0}, px_new, py_new, pz_new, rho_new, Enki_in, Ekin_out, Etot_in, Etot_out, _rho2;
+         real Enki_in, Ekin_out, Etot_in, _rho2;
+#        endif
+
+         real acc_new[3]={0.0, 0.0, 0.0}, px_new, py_new, pz_new, rho_new, Etot_out;
 #        ifdef UNSPLIT_GRAVITY
          real acc_old[3]={0.0, 0.0, 0.0}, px_old, py_old, pz_old, rho_old, Emag_in=0.0;
 #        endif
@@ -271,10 +302,65 @@ void CPU_HydroGravitySolver(
             } // if ( P5_Gradient ) ... else ...
          } // if ( UsePot )
 
+#        ifdef SRHD
+         real Cons_new[NCOMP_FLUID], Prim_new[NCOMP_FLUID], LorentzFactor_new;
+
+         Cons_new[DENS] = g_Flu_Array_New[P][DENS][idx_g0];
+         Cons_new[MOMX] = g_Flu_Array_New[P][MOMX][idx_g0];
+         Cons_new[MOMY] = g_Flu_Array_New[P][MOMY][idx_g0];
+         Cons_new[MOMZ] = g_Flu_Array_New[P][MOMZ][idx_g0];
+         Cons_new[ENGY] = g_Flu_Array_New[P][ENGY][idx_g0];
+
+         Hydro_Con2Pri( Cons_new, Prim_new, NULL_REAL, NULL_BOOL, NULL_INT, NULL,
+                        NULL_BOOL, NULL_REAL, NULL, NULL, EoS_GuessHTilde_Func,
+                        EoS_HTilde2Temp_Func, c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int,
+                        c_EoS_Table, NULL, &LorentzFactor_new );
+
+         rho_new = Prim_new[0];
+         px_new  = Cons_new[MOMX];
+         py_new  = Cons_new[MOMY];
+         pz_new  = Cons_new[MOMZ];
+
+#        ifdef UNSPLIT_GRAVITY
+         real Vx_new, Vy_new, Vz_new;
+         Vx_new  = Prim_new[1] / LorentzFactor_new;
+         Vy_new  = Prim_new[2] / LorentzFactor_new;
+         Vz_new  = Prim_new[3] / LorentzFactor_new;
+#        endif
+#        endif
+
+#        if ( ( defined SRHD && defined UNSPLIT_GRAVITY ) || !defined SRHD )
+         Etot_in = g_Flu_Array_New[P][ENGY][idx_g0];
+#        endif
 
 //       advance fluid
 #        ifdef UNSPLIT_GRAVITY
 
+
+#        ifdef SRHD
+         real Cons_old[NCOMP_FLUID], Prim_old[NCOMP_FLUID], LorentzFactor_old;
+         real Vx_old, Vy_old, Vz_old;
+
+         Cons_old[DENS] = g_Flu_Array_USG[P][DENS][idx_g0];
+         Cons_old[MOMX] = g_Flu_Array_USG[P][MOMX][idx_g0];
+         Cons_old[MOMY] = g_Flu_Array_USG[P][MOMY][idx_g0];
+         Cons_old[MOMZ] = g_Flu_Array_USG[P][MOMZ][idx_g0];
+         Cons_old[ENGY] = g_Flu_Array_USG[P][ENGY][idx_g0];
+
+         Hydro_Con2Pri( Cons_old, Prim_old, NULL_REAL, NULL_BOOL, NULL_INT, NULL,
+                        NULL_BOOL, NULL_REAL, NULL, NULL, EoS_GuessHTilde_Func,
+                        EoS_HTilde2Temp_Func, c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int,
+                        c_EoS_Table, NULL, &LorentzFactor_old );
+ 
+         rho_old = Prim_old[0];
+         Vx_old  = Prim_old[1] / LorentzFactor_old;
+         Vy_old  = Prim_old[2] / LorentzFactor_old;
+         Vz_old  = Prim_old[3] / LorentzFactor_old;
+         px_old  = Cons_old[MOMX];
+         py_old  = Cons_old[MOMY];
+         pz_old  = Cons_old[MOMZ];
+ 
+#        else
          rho_new = g_Flu_Array_New[P][DENS][idx_g0];
          rho_old = g_Flu_Array_USG[P][DENS][idx_g0];
          px_new  = g_Flu_Array_New[P][MOMX][idx_g0];
@@ -286,11 +372,11 @@ void CPU_HydroGravitySolver(
 
 //       backup the original non-kinetic energy so that we can restore it later if necessary
          _rho2   = (real)0.5/rho_new;
-         Etot_in = g_Flu_Array_New[P][ENGY][idx_g0];
          Enki_in = Etot_in - _rho2*( SQR(px_new) + SQR(py_new) + SQR(pz_new) );
 #        ifdef MHD
          Emag_in = g_Emag_Array[P][idx_g0];
-#        endif
+#        endif // # ifdef MHD
+#        endif // # ifdef SRHD
 
 //       update the momentum density
          px_new += (real)0.5*( rho_old*acc_old[0] + rho_new*acc_new[0] );
@@ -301,8 +387,10 @@ void CPU_HydroGravitySolver(
          g_Flu_Array_New[P][MOMY][idx_g0] = py_new;
          g_Flu_Array_New[P][MOMZ][idx_g0] = pz_new;
 
+#        ifndef SRHD
 //       record the updated kinematic energy density
          Ekin_out = _rho2*( SQR(px_new) + SQR(py_new) + SQR(pz_new) );
+#        endif
 
 //       update the total energy density
 #        ifdef DUAL_ENERGY
@@ -338,6 +426,15 @@ void CPU_HydroGravitySolver(
 
 #        else // # ifdef DUAL_ENERGY
 
+#        ifdef SRHD
+         px_new = rho_new*Vx_new;
+         py_new = rho_new*Vy_new; 
+         pz_new = rho_new*Vz_new; 
+         px_old = rho_old*Vx_old; 
+         py_old = rho_old*Vy_old; 
+         pz_old = rho_old*Vz_old; 
+#        endif
+
 //       for the unsplitting method without the dual-energy formalism, we always correct the total energy density
 //       instead of the kinematic energy density
 //       --> internal energy may change
@@ -345,17 +442,22 @@ void CPU_HydroGravitySolver(
          Etot_out = Etot_in + (real)0.5*( px_old*acc_old[0] + py_old*acc_old[1] + pz_old*acc_old[2] +
                                           px_new*acc_new[0] + py_new*acc_new[1] + pz_new*acc_new[2] );
 
+#        ifndef SRHD
 //       check the minimum internal energy
 //       --> restore the original internal energy if the updated value becomes smaller than the threshold
          if ( Etot_out - Ekin_out - Emag_in < MinEint )
             Etot_out = Enki_in + Ekin_out;
+#        endif
 
 #        endif // #ifdef DUAL_ENERGY ... else ...
 
 
 #        else  // #ifdef UNSPLIT_GRAVITY
 
-
+#        ifdef SRHD
+//       backup the dimensionless temperature (k_{B}T/mc^2) so that we can restore it later
+         real Temperature = Prim_new[4]/Prim_new[0];
+#        else
          rho_new = g_Flu_Array_New[P][DENS][idx_g0];
          px_new  = g_Flu_Array_New[P][MOMX][idx_g0];
          py_new  = g_Flu_Array_New[P][MOMY][idx_g0];
@@ -363,8 +465,8 @@ void CPU_HydroGravitySolver(
 
 //       backup the original internal energy so that we can restore it later
          _rho2   = (real)0.5/rho_new;
-         Etot_in = g_Flu_Array_New[P][ENGY][idx_g0];
          Enki_in = Etot_in - _rho2*( SQR(px_new) + SQR(py_new) + SQR(pz_new) );
+#        endif
 
 //       update the momentum density
          px_new += rho_new*acc_new[0];
@@ -376,14 +478,45 @@ void CPU_HydroGravitySolver(
          g_Flu_Array_New[P][MOMZ][idx_g0] = pz_new;
 
 //       for the splitting method, we ensure that the internal energy is unchanged
+#        ifdef SRHD
+         real Msqr = SQR(px_new) + SQR(py_new) + SQR(pz_new);
+         real Dsqr = SQR(Cons_new[DENS]);
+         real HTilde = EoS_Temp2HTilde_Func( Temperature, NULL, c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
+         real h = HTilde + (real)1.0;
+         real factor = SQRT( Dsqr*h*h + Msqr );
+
+         Cons_new[ENGY]  = Dsqr * SQR(HTilde) + (real)2.0*HTilde*Dsqr + Msqr;
+         Cons_new[ENGY] /= ( factor + Cons_new[DENS] );
+         Cons_new[ENGY] -= Dsqr*h*Temperature / factor;
+         Etot_out = Cons_new[ENGY];
+#        else
          Ekin_out = _rho2*( SQR(px_new) + SQR(py_new) + SQR(pz_new) );
          Etot_out = Enki_in + Ekin_out;
+#        endif
+
 
 #        endif // #ifdef UNSPLIT_GRAVITY ... else ...
 
 
+
 //       store the updated total energy density to the output array
          g_Flu_Array_New[P][ENGY][idx_g0] = Etot_out;
+
+
+#        ifdef SRHD
+#        ifdef CHECK_FAILED_CELL_IN_FLUID
+//       check unphysical result
+         real Cons[NCOMP_FLUID];
+
+         Cons[DENS] = g_Flu_Array_New[P][DENS][idx_g0];
+         Cons[MOMX] = g_Flu_Array_New[P][MOMX][idx_g0];
+         Cons[MOMY] = g_Flu_Array_New[P][MOMY][idx_g0];
+         Cons[MOMZ] = g_Flu_Array_New[P][MOMZ][idx_g0];
+         Cons[ENGY] = g_Flu_Array_New[P][ENGY][idx_g0];
+
+         SRHydro_CheckUnphysical( Cons, NULL, __FUNCTION__, __LINE__, true );
+#        endif
+#        endif
 
       } // CGPU_LOOP( idx_g0, CUBE(PS1) )
    } // for (int P=0; P<NPatchGroup*8; P++)

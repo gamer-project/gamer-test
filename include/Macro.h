@@ -70,12 +70,13 @@
 #endif
 
 
-// equation of states
-#define EOS_GAMMA       1
-#define EOS_ISOTHERMAL  2
-#define EOS_NUCLEAR     3
-#define EOS_TABULAR     4
-#define EOS_USER        5
+// equations of state
+#define EOS_GAMMA             1
+#define EOS_ISOTHERMAL        2
+#define EOS_NUCLEAR           3
+#define EOS_TAUBMATHEWS       4
+#define EOS_TABULAR          98
+#define EOS_USER             99
 
 
 // Poisson solvers
@@ -190,7 +191,7 @@
 
 // number of input fluid variables in the dt solver
 // --> EOS_GAMMA/EOS_ISOTHERMAL do not require passive scalars
-#if (  MODEL == HYDRO  &&  ( EOS == EOS_GAMMA || EOS == EOS_ISOTHERMAL )  )
+#if (  MODEL == HYDRO  &&  ( EOS == EOS_GAMMA || EOS == EOS_ISOTHERMAL || EOS_TAUBMATHEWS )  )
 #  define FLU_NIN_T           NCOMP_FLUID
 #else
 #  define FLU_NIN_T           NCOMP_TOTAL
@@ -340,7 +341,9 @@
 // --> remember to define NDERIVE = total number of derived fields
 // _EINT_DER is a derived field for distinguishing from _EINT
 // --> the latter is an intrinsic field when adopting DUAL_ENERGY == DE_EINT
-#  define _VELX               ( 1L << (NCOMP_TOTAL+ 0) )
+// NCOMP_TOTAL + NDERIVE should be less or equal to 64/32 on 64/32 bit system
+// _VEL? represent the component of four/three-velocity along ?-direction when enabling/disabling SRHD
+#  define _VELX               ( 1L << (NCOMP_TOTAL+ 0) ) 
 #  define _VELY               ( 1L << (NCOMP_TOTAL+ 1) )
 #  define _VELZ               ( 1L << (NCOMP_TOTAL+ 2) )
 #  define _VELR               ( 1L << (NCOMP_TOTAL+ 3) )
@@ -351,8 +354,9 @@
 #  define _MAGY_CC            ( 1L << (NCOMP_TOTAL+ 8) )
 #  define _MAGZ_CC            ( 1L << (NCOMP_TOTAL+ 9) )
 #  define _MAG_ENGY_CC        ( 1L << (NCOMP_TOTAL+10) )
-#  define _DERIVED            ( _VELX | _VELY | _VELZ | _VELR | _PRES | _TEMP | _EINT_DER | _MAGX_CC | _MAGY_CC | _MAGZ_CC | _MAG_ENGY_CC )
-#  define NDERIVE             11
+#  define _LORENTZ_FACTOR     ( 1L << (NCOMP_TOTAL+11) )
+#  define _DERIVED            ( _VELX | _VELY | _VELZ | _VELR | _PRES | _TEMP | _EINT_DER | _MAGX_CC | _MAGY_CC | _MAGZ_CC | _MAG_ENGY_CC | _LORENTZ_FACTOR)
+#  define NDERIVE             12
 
 
 #elif ( MODEL == ELBDM )
@@ -717,14 +721,24 @@
 #  define __DBL_MIN__            2.22507386e-308
 #endif
 
+#ifndef __DBL_EPSILON__
+#  define __DBL_EPSILON__        2.2204460492503131e-016
+#endif
+
+#ifndef __FLT_EPSILON__
+#  define __FLT_EPSILON__        1.192092896e-07F
+#endif
+
 
 // extreme value used for various purposes (e.g., floor value for passive scalars)
 #ifdef FLOAT8
 #  define TINY_NUMBER            __DBL_MIN__
 #  define HUGE_NUMBER            __DBL_MAX__
+#  define MACHINE_EPSILON        __DBL_EPSILON__
 #else
 #  define TINY_NUMBER            __FLT_MIN__
 #  define HUGE_NUMBER            __FLT_MAX__
+#  define MACHINE_EPSILON        __FLT_EPSILON__
 #endif
 
 
@@ -858,6 +872,16 @@
 #  define ATAN2( a, b )    atan2f( a, b )
 #endif
 
+#  ifdef FUSED_MULTIPLY_ADD
+#  ifdef FLOAT8
+#  define FMA( a, b, c )   fma( a, b, c )
+#  else
+#  define FMA( a, b, c )   fmaf( a, b, c )
+#  endif
+#  define FP_FAST_FMA
+#  else        
+#  define FMA( a, b, c )   ((( a ) * ( b )) + ( c ))
+#  endif
 
 // sign function
 #define SIGN( a )       (  ( (a) < (real)0.0 ) ? (real)-1.0 : (real)+1.0  )

@@ -80,12 +80,14 @@ OptTimeStepLevel_t   OPT__DT_LEVEL;
 // =======================================================================================================
 // (2-1) fluid solver in different models
 #if   ( MODEL == HYDRO )
-double               FlagTable_PresGradient[NLEVEL-1], FlagTable_Vorticity[NLEVEL-1], FlagTable_Jeans[NLEVEL-1];
+double               FlagTable_PresGradient[NLEVEL-1], FlagTable_Vorticity[NLEVEL-1], FlagTable_Jeans[NLEVEL-1],
+                     FlagTable_EngyGradient[NLEVEL-1];
 double               GAMMA, MINMOD_COEFF, MOLECULAR_WEIGHT, ISO_TEMP;
 LR_Limiter_t         OPT__LR_LIMITER;
 Opt1stFluxCorr_t     OPT__1ST_FLUX_CORR;
 OptRSolver1st_t      OPT__1ST_FLUX_CORR_SCHEME;
-bool                 OPT__FLAG_PRES_GRADIENT, OPT__FLAG_LOHNER_ENGY, OPT__FLAG_LOHNER_PRES, OPT__FLAG_LOHNER_TEMP;
+bool                 OPT__FLAG_PRES_GRADIENT, OPT__FLAG_LOHNER_ENGY, OPT__FLAG_LOHNER_PRES, OPT__FLAG_LOHNER_TEMP,
+                     OPT__FLAG_ENGY_GRADIENT;
 bool                 OPT__FLAG_VORTICITY, OPT__FLAG_JEANS, JEANS_MIN_PRES, OPT__LAST_RESORT_FLOOR;
 int                  OPT__CK_NEGATIVE, JEANS_MIN_PRES_LEVEL, JEANS_MIN_PRES_NCELL;
 double               MIN_DENS, MIN_PRES, MIN_EINT;
@@ -99,6 +101,14 @@ bool                 OPT__FIXUP_ELECTRIC, OPT__CK_INTERFACE_B, OPT__OUTPUT_CC_MA
 int                  OPT__CK_DIVERGENCE_B;
 double               UNIT_B;
 bool                 OPT__INIT_BFIELD_BYFILE;
+#endif
+#ifdef SRHD
+double               FlagTable_4Velocity[NLEVEL-1],
+                     FlagTable_Mom_Over_Dens[NLEVEL-1], FlagTable_LorentzFactorGradient[NLEVEL-1];
+bool                 OPT__FLAG_4VELOCITY, OPT__FLAG_MOM_OVER_DENS,
+                     OPT__FLAG_LORENTZ_GRADIENT;
+int                  DT_SPEED_OF_LIGHT;
+double               MIN_TEMP;
 #endif
 
 #elif ( MODEL == ELBDM )
@@ -220,6 +230,16 @@ double EoS_AuxArray_Flt[EOS_NAUX_MAX];
 int    EoS_AuxArray_Int[EOS_NAUX_MAX];
 
 // b. function pointers
+EoS_GUESS_t EoS_GuessHTilde_CPUPtr = NULL;
+EoS_H2TEM_t EoS_HTilde2Temp_CPUPtr = NULL;
+EoS_TEM2H_t EoS_Temp2HTilde_CPUPtr = NULL;
+EoS_TEM2C_t EoS_Temper2CSqr_CPUPtr = NULL;
+#ifdef GPU
+EoS_GUESS_t EoS_GuessHTilde_GPUPtr = NULL;
+EoS_H2TEM_t EoS_HTilde2Temp_GPUPtr = NULL;
+EoS_TEM2H_t EoS_Temp2HTilde_GPUPtr = NULL;
+EoS_TEM2C_t EoS_Temper2CSqr_GPUPtr = NULL;
+#endif
 EoS_DE2P_t EoS_DensEint2Pres_CPUPtr = NULL;
 EoS_DP2E_t EoS_DensPres2Eint_CPUPtr = NULL;
 EoS_DP2C_t EoS_DensPres2CSqr_CPUPtr = NULL;

@@ -35,7 +35,7 @@ void Aux_Check( )
    if ( OPT__CK_FLUX_ALLOCATE )
       for (int lv=0; lv<NLEVEL-1; lv++)   Aux_Check_FluxAllocate( lv, "DIAGNOSIS" );
 
-#  if ( MODEL == HYDRO )
+#  if ( MODEL == HYDRO && !defined SRHD )
    if ( OPT__CK_NEGATIVE )
       for (int lv=0; lv<NLEVEL; lv++)     Hydro_Aux_Check_Negative( lv, OPT__CK_NEGATIVE, "DIAGNOSIS" );
 #  endif

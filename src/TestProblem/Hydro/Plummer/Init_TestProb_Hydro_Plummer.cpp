@@ -71,6 +71,9 @@ void Validate()
 #  ifdef PARTICLE
    if ( OPT__INIT == INIT_BY_FUNCTION  &&  amr->Par->Init != PAR_INIT_BY_FUNCTION )
       Aux_Error( ERROR_INFO, "please set PAR_INIT = 1 (by FUNCTION) !!\n" );
+#  ifdef SRHD
+   Aux_Error( ERROR_INFO, "SRHD must be disabled !!\n" );
+#  endif
 #  endif
 
 
@@ -196,7 +199,7 @@ void SetParameter()
          Plummer_ParMFrac = 1.0 - NonParMFrac;
 
 #     else
-      if (  ! Mis_CompareRealValue( NonParMFrac, 1.0, NULL, false )  )
+	  if (  ! Mis_CompareRealValue( NonParMFrac, 1.0, NULL, false )  )
       {
          Plummer_GasMFrac = 1.0 - Plummer_ExtAccMFrac - Plummer_ExtPotMFrac;
 
@@ -356,6 +359,10 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    const double GasRho0 = Plummer_Rho0*Plummer_GasMFrac;
    const double PresBg  = 0.0;   // background pressure (set to 0.0 by default)
 
+#  ifdef SRHD
+   real Prim[NCOMP_FLUID];
+#  endif
+
    double Dens=0.0, MomX=0.0, MomY=0.0, MomZ=0.0, Pres=0.0, Eint, Etot;
    double r2, a2, Dens1Cloud;
 
@@ -383,9 +390,17 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
          fluid[ (t==-1)?Plummer_Idx_Cloud0:Plummer_Idx_Cloud1 ] = Dens1Cloud;
       }
 
+#     ifdef SRHD
+      Prim[0] = Dens;
+      Prim[1] = Plummer_BulkVel[0];
+      Prim[2] = Plummer_BulkVel[1];
+      Prim[3] = Plummer_BulkVel[2];
+      Prim[4] = Pres;
+#     else
       MomX = Dens*Plummer_BulkVel[0];
       MomY = Dens*Plummer_BulkVel[1];
       MomZ = Dens*Plummer_BulkVel[2];
+#     endif
    } // if ( Plummer_Collision )
 
    else
@@ -394,18 +409,33 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
       a2         = r2 / SQR(Plummer_R0);
       Dens1Cloud = GasRho0 * pow( 1.0 + a2, -2.5 );
 
+#     ifdef GRAVITY
+      Pres = NEWTON_G*TotM*GasRho0 / ( 6.0*Plummer_R0*CUBE(1.0 + a2) ) + PresBg;
+#     endif
+
+#     ifdef SRHD
+      Prim[0] = Dens1Cloud;
+      Prim[1] = Plummer_BulkVel[0];
+      Prim[2] = Plummer_BulkVel[1];
+      Prim[3] = Plummer_BulkVel[2];
+      Prim[4] = Pres;
+#     else
       Dens = Dens1Cloud;
       MomX = Dens1Cloud*Plummer_BulkVel[0];
       MomY = Dens1Cloud*Plummer_BulkVel[1];
       MomZ = Dens1Cloud*Plummer_BulkVel[2];
-#     ifdef GRAVITY
-      Pres = NEWTON_G*TotM*GasRho0 / ( 6.0*Plummer_R0*CUBE(1.0 + a2) ) + PresBg;
 #     endif
+
 
 //    just set all passive scalars as zero
       for (int v=NCOMP_FLUID; v<NCOMP_TOTAL; v++)  fluid[v] = 0.0;
    } // if ( Plummer_Collision ) ... else ...
 
+#  ifdef SRHD
+   Hydro_Pri2Con( Prim, fluid, NULL_BOOL, NULL_INT, NULL, NULL,
+                  EoS_Temp2HTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                  EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
+#  else
 // compute the total gas energy
    Eint = EoS_DensPres2Eint_CPUPtr( Dens, Pres, NULL, EoS_AuxArray_Flt,
                                     EoS_AuxArray_Int, h_EoS_Table );    // assuming EoS requires no passive scalars
@@ -417,6 +447,8 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    fluid[MOMY] = MomY;
    fluid[MOMZ] = MomZ;
    fluid[ENGY] = Etot;
+#  endif
+
 
 } // FUNCTION : SetGridIC
 

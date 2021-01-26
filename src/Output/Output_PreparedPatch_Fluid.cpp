@@ -143,8 +143,9 @@ void Output_PreparedPatch_Fluid( const int TLv, const int TPID,
 #        endif
          fprintf( File, "  %14.7e", Hydro_Con2Pres(u[DENS],u[MOMX],u[MOMY],u[MOMZ],u[ENGY],u+NCOMP_FLUID,
                                                    CheckMinPres_No,NULL_REAL,Emag,
-                                                   EoS_DensEint2Pres_CPUPtr, EoS_AuxArray_Flt, EoS_AuxArray_Int,
-                                                   h_EoS_Table, NULL) );
+                                                   EoS_DensEint2Pres_CPUPtr,
+                                                   EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                                                   EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL ));
 #        endif // #if ( MODEL == HYDRO )
 
          fprintf( File, "\n" );

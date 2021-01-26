@@ -295,6 +295,7 @@ void Aux_Check_Parameter()
    bool Flag = ( OPT__FLAG_RHO  ||  OPT__FLAG_RHO_GRADIENT  ||  OPT__FLAG_LOHNER_DENS  ||  OPT__FLAG_USER );
 #  if ( MODEL == HYDRO )
    Flag |= OPT__FLAG_PRES_GRADIENT;
+   Flag |= OPT__FLAG_ENGY_GRADIENT;
    Flag |= OPT__FLAG_VORTICITY;
    Flag |= OPT__FLAG_JEANS;
    Flag |= OPT__FLAG_LOHNER_ENGY;
@@ -302,6 +303,11 @@ void Aux_Check_Parameter()
    Flag |= OPT__FLAG_LOHNER_TEMP;
 #  ifdef MHD
    Flag |= OPT__FLAG_CURRENT;
+#  endif
+#  ifdef SRHD
+   Flag |= OPT__FLAG_4VELOCITY;
+   Flag |= OPT__FLAG_MOM_OVER_DENS;
+   Flag |= OPT__FLAG_LORENTZ_GRADIENT;
 #  endif
 #  endif
 #  if ( MODEL == ELBDM )
@@ -587,6 +593,42 @@ void Aux_Check_Parameter()
 #   endif
 #  endif // MHD
 
+#  ifdef SRHD
+#   if ( defined RSOLVER  &&  RSOLVER != HLLC  &&  RSOLVER != HLLE )
+#     error : ERROR : unsupported Riemann solver for MHD (HLLC/HLLE) !!
+#   endif
+
+#  if ( defined PARTICLE )
+#     error : ERROR : SRHD does not support PARTICLE !!
+#  endif
+
+#  if ( NCOMP_PASSIVE != 0 )
+#     error : SRHD does NOT support passive scalars !!
+#  endif
+
+#  if ( defined DUAL_ENERGY )
+#     error : ERROR : SRHD does not support DUAL_ENERGY !!
+#  endif
+
+#  if ( defined SUPPORT_GRACKLE )
+#     error : ERROR : SRHD does not support GRACKLE !!
+#  endif
+
+#  if ( FLU_SCHEME != MHM && FLU_SCHEME != MHM_RP )
+#     error : ERROR : unsupported FLU_SCHEME for SRHD (MHM/MHM_RP) !!
+#  endif
+
+#  if ( EOS != EOS_TAUBMATHEWS )
+#     error : ERROR : unsupported EOS for SRHD (EOS_TAUBMATHEWS) !!
+#  endif
+
+#  else
+#  if ( EOS == EOS_TAUBMATHEWS )
+#     error : ERROR : unsupported EOS for non-SRHD (EOS_TAUBMATHEWS) !!
+#  endif
+
+#  endif // #  ifdef SRHD
+
 #  ifdef DUAL_ENERGY
 #   if ( FLU_SCHEME == RTVD )
 #     error : RTVD does NOT support DUAL_ENERGY !!
@@ -624,8 +666,9 @@ void Aux_Check_Parameter()
 #     error : ERROR : CTU does NOT support LR_EINT in CUFLU.h !!
 #  endif
 
-#  if ( EOS != EOS_GAMMA  &&  EOS != EOS_ISOTHERMAL  &&  EOS != EOS_NUCLEAR  &&  EOS != EOS_TABULAR  &&  EOS != EOS_USER )
-#     error : ERROR : unsupported equation of state (EOS_GAMMA/EOS_ISOTHERMAL/EOS_NUCLEAR/EOS_TABULAR/EOS_USER) !!
+#  if ( EOS != EOS_GAMMA       &&  EOS != EOS_ISOTHERMAL  &&  EOS != EOS_NUCLEAR  && \
+        EOS != EOS_TAUBMATHEWS &&  EOS != EOS_TABULAR     &&  EOS != EOS_USER )
+#     error : ERROR : unsupported equation of state (EOS_GAMMA/EOS_ISOTHERMAL/EOS_NUCLEAR/EOS_TAUBMATHEWS/EOS_TABULAR/EOS_USER) !!
 #  endif
 
 #  if ( EOS != EOS_GAMMA )

@@ -125,6 +125,7 @@ void Flag_Real( const int lv, const UseLBFunc_t UseLBFunc )
       real (*MagCC)[PS1][PS1][PS1]       = NULL;
       real (*Vel)[PS1][PS1][PS1]         = NULL;
       real (*Pres)[PS1][PS1]             = NULL;
+      real (*LorentzFactor)[PS1][PS1]    = NULL;
       real (*ParCount)[PS1][PS1]         = NULL;   // declare as **real** to be consistent with Par_MassAssignment()
       real (*ParDens )[PS1][PS1]         = NULL;
       real (*Lohner_Var)                 = NULL;   // array storing the variables for Lohner
@@ -144,6 +145,10 @@ void Flag_Real( const int lv, const UseLBFunc_t UseLBFunc )
 #     ifdef MHD
       if ( OPT__FLAG_CURRENT || NeedPres )   MagCC    = new real [3][PS1][PS1][PS1];
 #     endif
+#     ifdef SRHD
+      if ( OPT__FLAG_LORENTZ_GRADIENT ) LorentzFactor = new real    [PS1][PS1][PS1];
+#     endif
+
       if ( OPT__FLAG_VORTICITY )             Vel      = new real [3][PS1][PS1][PS1];
       if ( NeedPres )                        Pres     = new real    [PS1][PS1][PS1];
 #     endif // HYDRO
@@ -238,6 +243,32 @@ void Flag_Real( const int lv, const UseLBFunc_t UseLBFunc )
                } // if ( OPT__FLAG_CURRENT || NeedPres )
 #              endif // #ifdef MHD
 
+#              ifdef SRHD
+               if ( OPT__FLAG_LORENTZ_GRADIENT )
+               {
+                  for (int k=0; k<PS1; k++)
+                  for (int j=0; j<PS1; j++)
+                  for (int i=0; i<PS1; i++)
+                  {
+                     real HTilde, Factor0, Usqr;
+                     real In[NCOMP_FLUID];
+
+                     for ( int idx=0; idx<NCOMP_FLUID; idx++ ) In[idx] = Fluid[idx][k][j][i];
+
+                     HTilde = SRHD_Con2HTilde( In, EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                                               EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+
+                     Factor0 = In[DENS] * HTilde + In[DENS];
+
+                     Usqr  = SQR( In[MOMX] ) + SQR( In[MOMY] ) + SQR( In[MOMZ] );
+                     Usqr /= Factor0;
+                     Usqr /= Factor0;
+
+                     LorentzFactor[k][j][i] = SQRT( (real)1.0 + Usqr );
+                  } // k,j,i
+               }
+#              endif
+
 
 //             evaluate velocity
                if ( OPT__FLAG_VORTICITY )
@@ -293,8 +324,9 @@ void Flag_Real( const int lv, const UseLBFunc_t UseLBFunc )
                      Pres[k][j][i] = Hydro_Con2Pres( Fluid[DENS][k][j][i], Fluid[MOMX][k][j][i], Fluid[MOMY][k][j][i],
                                                      Fluid[MOMZ][k][j][i], Fluid[ENGY][k][j][i], Passive,
                                                      CheckMinPres_Yes, MIN_PRES, Emag,
-                                                     EoS_DensEint2Pres_CPUPtr, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table,
-                                                     NULL );
+                                                     EoS_DensEint2Pres_CPUPtr,
+                                                     EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
+                                                     EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table, NULL );
 #                    endif // #ifdef DUAL_ENERGY ... else ...
                   } // k,j,i
                } // if ( NeedPres )
@@ -406,7 +438,7 @@ void Flag_Real( const int lv, const UseLBFunc_t UseLBFunc )
                                              i_end   = ( i + FlagBuf >= PS1 ) ? 2 : 1;
 
 //                check if the target cell satisfies the refinement criteria (useless pointers are always == NULL)
-                  if (  lv < MAX_LEVEL  &&  Flag_Check( lv, PID, i, j, k, dv, Fluid, Pot, MagCC, Vel, Pres,
+                  if (  lv < MAX_LEVEL  &&  Flag_Check( lv, PID, i, j, k, dv, Fluid, Pot, MagCC, Vel, Pres, LorentzFactor,
                                                         Lohner_Var+LocalID*Lohner_Stride, Lohner_Ave, Lohner_Slope, Lohner_NVar,
                                                         ParCount, ParDens, JeansCoeff )  )
                   {

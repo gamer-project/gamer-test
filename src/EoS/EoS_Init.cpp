@@ -9,6 +9,8 @@
 void EoS_Init_Gamma();
 #elif ( EOS == EOS_ISOTHERMAL )
 void EoS_Init_Isothermal();
+#elif ( EOS == EOS_TAUBMATHEWS )
+void EoS_Init_TaubMathews();
 #elif ( EOS == EOS_NUCLEAR )
 # error : ERROR : EOS_NUCLEAR is NOT supported yet !!
 #endif // # EOS
@@ -57,6 +59,8 @@ void EoS_Init()
    EoS_Init_Ptr = EoS_Init_Gamma;
 #  elif ( EOS == EOS_ISOTHERMAL )
    EoS_Init_Ptr = EoS_Init_Isothermal;
+#  elif ( EOS == EOS_TAUBMATHEWS )
+   EoS_Init_Ptr = EoS_Init_TaubMathews;
 #  elif ( EOS == EOS_NUCLEAR )
 #  error : ERROR : EOS_NUCLEAR is NOT supported yet !!
 #  endif // # EOS

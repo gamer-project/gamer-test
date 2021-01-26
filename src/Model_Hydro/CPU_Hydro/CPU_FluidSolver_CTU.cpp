@@ -1,6 +1,6 @@
 #include "CUFLU.h"
 
-#if ( MODEL == HYDRO  &&  FLU_SCHEME == CTU )
+#if ( MODEL == HYDRO  &&  FLU_SCHEME == CTU && !defined SRHD )
 
 
 
@@ -33,6 +33,9 @@ void Hydro_DataReconstruction( const real g_ConVar   [][ CUBE(FLU_NXT) ],
                                const EoS_DE2P_t EoS_DensEint2Pres,
                                const EoS_DP2E_t EoS_DensPres2Eint,
                                const EoS_DP2C_t EoS_DensPres2CSqr,
+                               const EoS_GUESS_t EoS_GuessHTilde,
+                               const EoS_H2TEM_t EoS_HTilde2Temp,
+                               const EoS_TEM2H_t EoS_Temp2HTilde,
                                const double EoS_AuxArray_Flt[],
                                const int    EoS_AuxArray_Int[],
                                const real *const EoS_Table[EOS_NTABLE_MAX] );
@@ -44,7 +47,8 @@ void Hydro_ComputeFlux( const real g_FC_Var [][NCOMP_TOTAL_PLUS_MAG][ CUBE(N_FC_
                         const OptExtAcc_t ExtAcc, const ExtAcc_t ExtAcc_Func, const double ExtAcc_AuxArray[],
                         const real MinDens, const real MinPres, const bool DumpIntFlux, real g_IntFlux[][NCOMP_TOTAL][ SQR(PS2) ],
                         const EoS_DE2P_t EoS_DensEint2Pres, const EoS_DP2C_t EoS_DensPres2CSqr,
-                        const double EoS_AuxArray_Flt[], const int EoS_AuxArray_Int[],
+                        const EoS_GUESS_t EoS_GuessHTilde, const EoS_H2TEM_t EoS_HTilde2Temp, EoS_TEM2H_t EoS_Temp2HTilde,
+                        const EoS_TEM2C_t EoS_Temper2CSqr, const double EoS_AuxArray_Flt[], const int EoS_AuxArray_Int[],
                         const real *const EoS_Table[EOS_NTABLE_MAX] );
 void Hydro_FullStepUpdate( const real g_Input[][ CUBE(FLU_NXT) ], real g_Output[][ CUBE(PS2) ], char g_DE_Status[],
                            const real g_FC_B[][ PS2P1*SQR(PS2) ], const real g_Flux[][NCOMP_TOTAL_PLUS_MAG][ CUBE(N_FC_FLUX) ],
@@ -281,7 +285,7 @@ void CPU_FluidSolver_CTU(
                                    MinDens, MinPres, MinEint, NormPassive, NNorm, c_NormIdx,
                                    JeansMinPres, JeansMinPres_Coeff,
                                    EoS_DensEint2Pres_Func, EoS_DensPres2Eint_Func, EoS_DensPres2CSqr_Func,
-                                   c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
+                                   NULL, NULL, NULL, c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
 
 
 //       2. evaluate the face-centered half-step fluxes by solving the Riemann problem
@@ -290,7 +294,7 @@ void CPU_FluidSolver_CTU(
                             EXT_POT_NONE, EXT_ACC_NONE, NULL, NULL,
                             MinDens, MinPres, StoreFlux_No, NULL,
                             EoS_DensEint2Pres_Func, EoS_DensPres2CSqr_Func,
-                            c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
+                            NULL, NULL, NULL, NULL, c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
 
 
 //       3. evaluate electric field and update B field at the half time-step
@@ -330,6 +334,7 @@ void CPU_FluidSolver_CTU(
                             UsePot, ExtAcc, ExtAcc_Func, c_ExtAcc_AuxArray,
                             MinDens, MinPres, StoreFlux, g_Flux_Array[P],
                             EoS_DensEint2Pres_Func, EoS_DensPres2CSqr_Func,
+                            NULL, NULL, NULL, NULL,
                             c_EoS_AuxArray_Flt, c_EoS_AuxArray_Int, c_EoS_Table );
 
 
