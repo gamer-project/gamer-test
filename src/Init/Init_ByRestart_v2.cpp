@@ -653,13 +653,15 @@ void Init_ByRestart()
                } // for (int p=0; p<NParThisPatch )
 
 //             link particles to this patch
+               const real *PType = amr->Par->Type;
 #              ifdef DEBUG_PARTICLE
                char Comment[100];
                sprintf( Comment, "%s, PID %d, NPar %d", __FUNCTION__, PID, NParThisPatch );
                amr->patch[0][lv][PID]->AddParticle( NParThisPatch, NewParList, &amr->Par->NPar_Lv[lv],
-                                                    ParPos, amr->Par->NPar_AcPlusInac, Comment );
+                                                    PType, ParPos, amr->Par->NPar_AcPlusInac, Comment );
 #              else
-               amr->patch[0][lv][PID]->AddParticle( NParThisPatch, NewParList, &amr->Par->NPar_Lv[lv] );
+               amr->patch[0][lv][PID]->AddParticle( NParThisPatch, NewParList, &amr->Par->NPar_Lv[lv],
+                                                    PType );
 #              endif
             } // if ( amr->patch[0][lv][PID]->NPar > 0 )
          } // for PID, lv

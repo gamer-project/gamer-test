@@ -29,7 +29,7 @@ extern double  Merger_Coll_VelY3;
 
 extern FieldIdx_t ParTypeIdx;
 
-#ifdef PARTICLE
+#ifdef MASSIVE_PARTICLES
 long Read_Particle_Number_ClusterMerger(std::string filename);
 void Read_Particles_ClusterMerger(std::string filename, long offset, long num,
                                   real_par_in xpos[], real_par_in ypos[],
@@ -68,18 +68,19 @@ void Read_Particles_ClusterMerger(std::string filename, long offset, long num,
 //                ParPosX/Y/Z   : Particle position array with the size of NPar_ThisRank
 //                ParVelX/Y/Z   : Particle velocity array with the size of NPar_ThisRank
 //                ParTime       : Particle time     array with the size of NPar_ThisRank
+//                ParType       : Particle type     array with the size of NPar_ThisRank
 //                AllAttribute  : Pointer array for all particle attributes
 //                                --> Dimension = [PAR_NATT_TOTAL][NPar_ThisRank]
 //                                --> Use the attribute indices defined in Field.h (e.g., Idx_ParCreTime)
 //                                    to access the data
 //
-// Return      :  ParMass, ParPosX/Y/Z, ParVelX/Y/Z, ParTime, AllAttribute
+// Return      :  ParMass, ParPosX/Y/Z, ParVelX/Y/Z, ParTime, ParType, AllAttribute
 //-------------------------------------------------------------------------------------------------------
 
 void Par_Init_ByFunction_ClusterMerger( const long NPar_ThisRank, const long NPar_AllRank,
                                         real *ParMass, real *ParPosX, real *ParPosY, real *ParPosZ,
                                         real *ParVelX, real *ParVelY, real *ParVelZ, real *ParTime,
-                                        real *AllAttribute[PAR_NATT_TOTAL] )
+                                        real *ParType, real *AllAttribute[PAR_NATT_TOTAL] )
 {
 
 #ifdef SUPPORT_HDF5
@@ -239,7 +240,7 @@ void Par_Init_ByFunction_ClusterMerger( const long NPar_ThisRank, const long NPa
          ParTime[pp] = Time[0];
 
          // set the particle type
-         AllAttribute[ParTypeIdx][pp] = real( ptype[p] );
+         ParType[pp] = real( ptype[p] );
 
       }
 
@@ -529,7 +530,7 @@ void Read_Particles_ClusterMerger( std::string filename, long offset, long num,
 } // FUNCTION : Read_Particles_ClusterMerger
 
 #endif // #ifdef SUPPORT_HDF5
-#endif // #ifdef PARTICLE
+#endif // #ifdef MASSIVE_PARTICLES
 
 
 

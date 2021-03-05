@@ -203,6 +203,7 @@ void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, Rando
          NewParAtt[NNewPar][PAR_VELY] = fluid[MOMY][k][j][i]*_GasDens;
          NewParAtt[NNewPar][PAR_VELZ] = fluid[MOMZ][k][j][i]*_GasDens;
          NewParAtt[NNewPar][PAR_TIME] = TimeNew;
+         NewParAtt[NNewPar][PAR_TYPE] = PTYPE_STAR;
 
 //       particle acceleration
 #        ifdef STORE_PAR_ACC
@@ -274,6 +275,7 @@ void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, Rando
 
 
 //       4-2. add particles to the patch
+         const real *PType = amr->Par->Type;
 #        ifdef DEBUG_PARTICLE
 //       do not set ParPos too early since pointers to the particle repository (e.g., amr->Par->PosX)
 //       may change after calling amr->Par->AddOneParticle()
@@ -282,9 +284,9 @@ void SF_CreateStar_AGORA( const int lv, const real TimeNew, const real dt, Rando
          sprintf( Comment, "%s", __FUNCTION__ );
 
          amr->patch[0][lv][PID]->AddParticle( NNewPar, NewParID, &amr->Par->NPar_Lv[lv],
-                                              ParPos, amr->Par->NPar_AcPlusInac, Comment );
+                                              PType, ParPos, amr->Par->NPar_AcPlusInac, Comment );
 #        else
-         amr->patch[0][lv][PID]->AddParticle( NNewPar, NewParID, &amr->Par->NPar_Lv[lv] );
+         amr->patch[0][lv][PID]->AddParticle( NNewPar, NewParID, &amr->Par->NPar_Lv[lv], PType );
 #        endif
       } // pragma omp critical
 

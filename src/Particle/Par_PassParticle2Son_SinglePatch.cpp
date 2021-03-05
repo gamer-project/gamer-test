@@ -57,6 +57,7 @@ void Par_PassParticle2Son_SinglePatch( const int FaLv, const int FaPID )
    const int     Octant[2][2][2] = {  { {0,1},{2,4} }, { {3,6},{5,7} }  };    // LocalID of sons at different octants
    const double *FaCen           = amr->patch[0][SonLv][SonPID0+7]->EdgeL;    // central coordinates of FaPID
    const real   *ParPos[3]       = { amr->Par->PosX, amr->Par->PosY, amr->Par->PosZ };
+   const real   *PType           = amr->Par->Type;
    long ParID;
    int  ijk[3], LocalID;
 
@@ -80,9 +81,9 @@ void Par_PassParticle2Son_SinglePatch( const int FaLv, const int FaPID )
 //###NOTE : No OpenMP since AddParticle will modify amr->Par->NPar_Lv[]
 #     ifdef DEBUG_PARTICLE
       amr->patch[0][SonLv][SonPID]->AddParticle( NNewForSon[LocalID], NewListForSon[LocalID], &amr->Par->NPar_Lv[SonLv],
-                                                 ParPos, amr->Par->NPar_AcPlusInac, __FUNCTION__ );
+                                                 PType, ParPos, amr->Par->NPar_AcPlusInac, __FUNCTION__ );
 #     else
-      amr->patch[0][SonLv][SonPID]->AddParticle( NNewForSon[LocalID], NewListForSon[LocalID], &amr->Par->NPar_Lv[SonLv] );
+      amr->patch[0][SonLv][SonPID]->AddParticle( NNewForSon[LocalID], NewListForSon[LocalID], &amr->Par->NPar_Lv[SonLv], PType );
 #     endif
    }
 
@@ -90,7 +91,8 @@ void Par_PassParticle2Son_SinglePatch( const int FaLv, const int FaPID )
 // 4. remove particles in the father patch
 //###NOTE : No OpenMP since RemoveParticle will modify amr->Par->NPar_Lv[]
    const bool RemoveAllParticle = true;
-   amr->patch[0][FaLv][FaPID]->RemoveParticle( NULL_INT, NULL, &amr->Par->NPar_Lv[FaLv], RemoveAllParticle );
+   amr->patch[0][FaLv][FaPID]->RemoveParticle( NULL_INT, NULL, &amr->Par->NPar_Lv[FaLv], 
+                                               RemoveAllParticle, PType );
 
 
 // free memory

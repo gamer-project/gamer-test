@@ -180,7 +180,13 @@ double Mis_GetTimeStep( const int lv, const double dTime_SyncFaLv, const double 
    dTime[NdTime] *= dTime_dt;
    sprintf( dTime_Name[NdTime++], "%s", "Par_Vel" );
 
-   if ( DT__PARACC > 0.0 ) {
+   #  ifdef MASSIVE_PARTICLES
+   const bool  UseAcc = ( DT__PARACC > 0.0 );
+#  else
+   const bool  UseAcc = false;
+#  endif
+
+   if ( UseAcc ) {
    dTime[NdTime] *= dTime_dt;
    sprintf( dTime_Name[NdTime++], "%s", "Par_Acc" ); }
 #  endif

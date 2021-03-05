@@ -6,13 +6,13 @@
 static void Par_Init_ByFunction_Template( const long NPar_ThisRank, const long NPar_AllRank,
                                           real *ParMass, real *ParPosX, real *ParPosY, real *ParPosZ,
                                           real *ParVelX, real *ParVelY, real *ParVelZ, real *ParTime,
-                                          real *AllAttribute[PAR_NATT_TOTAL] );
+                                          real *ParType, real *AllAttribute[PAR_NATT_TOTAL] );
 
 // this function pointer must be set by a test problem initializer
 void (*Par_Init_ByFunction_Ptr)( const long NPar_ThisRank, const long NPar_AllRank,
                                  real *ParMass, real *ParPosX, real *ParPosY, real *ParPosZ,
                                  real *ParVelX, real *ParVelY, real *ParVelZ, real *ParTime,
-                                 real *AllAttribute[PAR_NATT_TOTAL] ) = NULL;
+                                 real *ParType, real *AllAttribute[PAR_NATT_TOTAL] ) = NULL;
 
 
 
@@ -40,6 +40,7 @@ void (*Par_Init_ByFunction_Ptr)( const long NPar_ThisRank, const long NPar_AllRa
 //                ParPosX/Y/Z   : Particle position array with the size of NPar_ThisRank
 //                ParVelX/Y/Z   : Particle velocity array with the size of NPar_ThisRank
 //                ParTime       : Particle time     array with the size of NPar_ThisRank
+//                ParType       : Particle type     array with the size of NPar_ThisRank
 //                AllAttribute  : Pointer array for all particle attributes
 //                                --> Dimension = [PAR_NATT_TOTAL][NPar_ThisRank]
 //                                --> Use the attribute indices defined in Field.h (e.g., Idx_ParCreTime)
@@ -50,7 +51,7 @@ void (*Par_Init_ByFunction_Ptr)( const long NPar_ThisRank, const long NPar_AllRa
 void Par_Init_ByFunction_Template( const long NPar_ThisRank, const long NPar_AllRank,
                           real *ParMass, real *ParPosX, real *ParPosY, real *ParPosZ,
                           real *ParVelX, real *ParVelY, real *ParVelZ, real *ParTime,
-                          real *AllAttribute[PAR_NATT_TOTAL] )
+                          real *ParType, real *AllAttribute[PAR_NATT_TOTAL] )
 {
 
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "%s ...\n", __FUNCTION__ );

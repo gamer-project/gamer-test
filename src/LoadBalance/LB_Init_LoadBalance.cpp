@@ -544,8 +544,10 @@ void LB_RedistributeRealPatch( const int lv, real **ParAtt_Old, const bool Remov
 #     ifdef PARTICLE
       NDone_ParData[TRank] += amr->patch[0][lv][PID]->NPar*PAR_NATT_TOTAL;
 
-//    detach particles from patches to avoid warning messages when deleting patches with particles
-      amr->patch[0][lv][PID]->RemoveParticle( NULL_INT, NULL, &amr->Par->NPar_Lv[lv], RemoveAllParticle );
+//    detach particles from patches to avoid warning messages when deleting
+//    patches with particles
+      const real *PType = amr->Par->Type;
+      amr->patch[0][lv][PID]->RemoveParticle( NULL_INT, NULL, &amr->Par->NPar_Lv[lv], RemoveAllParticle, PType );
 #     endif
    } // for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
 
@@ -787,6 +789,7 @@ void LB_RedistributeRealPatch( const int lv, real **ParAtt_Old, const bool Remov
          }
 
 //       6.3 associate particles with their home patches
+         const real *PType = amr->Par->Type;
 #        ifdef DEBUG_PARTICLE
 //       do not set ParPos too early since pointers to the particle repository (e.g., amr->Par->PosX)
 //       may change after calling amr->Par->AddOneParticle()
@@ -794,9 +797,10 @@ void LB_RedistributeRealPatch( const int lv, real **ParAtt_Old, const bool Remov
          char Comment[100];
          sprintf( Comment, "%s, PID %d, NPar %d", __FUNCTION__, PID, RecvBuf_NPar[PID] );
          amr->patch[0][lv][PID]->AddParticle( RecvBuf_NPar[PID], ParList, &amr->Par->NPar_Lv[lv],
-                                              ParPos, amr->Par->NPar_AcPlusInac, Comment );
+                                              PType, ParPos, amr->Par->NPar_AcPlusInac, Comment );
 #        else
-         amr->patch[0][lv][PID]->AddParticle( RecvBuf_NPar[PID], ParList, &amr->Par->NPar_Lv[lv] );
+         amr->patch[0][lv][PID]->AddParticle( RecvBuf_NPar[PID], ParList, &amr->Par->NPar_Lv[lv],
+                                              PType );
 #        endif
 #        endif // #ifdef PARTICLE
       } // for (int LocalID=0; LocalID<8; LocalID++)

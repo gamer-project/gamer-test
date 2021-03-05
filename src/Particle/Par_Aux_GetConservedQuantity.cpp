@@ -1,6 +1,6 @@
 #include "GAMER.h"
 
-#ifdef PARTICLE
+#ifdef MASSIVE_PARTICLES
 
 
 
@@ -43,8 +43,8 @@ void Par_Aux_GetConservedQuantity( double &Mass_Total, double &MomX_Total, doubl
 #  pragma omp parallel for schedule( static ) reduction( +:Mass_ThisRank, MomX_ThisRank, MomY_ThisRank, MomZ_ThisRank, Ek_ThisRank )
    for (long p=0; p<amr->Par->NPar_AcPlusInac; p++)
    {
-//    skip inactive and massless particles
-      if ( amr->Par->Mass[p] > 0.0 )
+//    skip inactive, massless, and tracer particles
+      if ( amr->Par->Mass[p] > 0.0 && amr->Par->Type[p] != PTYPE_TRACER)
       {
          Mass_ThisRank += amr->Par->Mass[p];
          MomX_ThisRank += amr->Par->Mass[p]*amr->Par->VelX[p];
@@ -84,7 +84,8 @@ void Par_Aux_GetConservedQuantity( double &Mass_Total, double &MomX_Total, doubl
 
    const real *Pos[3]           = { amr->Par->PosX, amr->Par->PosY, amr->Par->PosZ };
    const real *Mass             = amr->Par->Mass;
-
+   const real *PType            = amr->Par->Type;
+ 
    double Ep_ThisRank = 0.0;
    double PrepPotTime, dh, _dh, Ep_Coeff;
    int    PotSg;
@@ -213,6 +214,9 @@ void Par_Aux_GetConservedQuantity( double &Mass_Total, double &MomX_Total, doubl
                   {
                      ParID = amr->patch[0][lv][PID]->ParList[p];
 
+                     if ( PType[ParID] == PTYPE_TRACER || Mass[ParID] < 0.0 )
+                        continue;
+
 //                   calculate the nearest grid index
                      for (int d=0; d<3; d++)
                      {
@@ -259,6 +263,9 @@ void Par_Aux_GetConservedQuantity( double &Mass_Total, double &MomX_Total, doubl
                   for (int p=0; p<amr->patch[0][lv][PID]->NPar; p++)
                   {
                      ParID = amr->patch[0][lv][PID]->ParList[p];
+                     
+                     if ( PType[ParID] == PTYPE_TRACER || Mass[ParID] < 0.0 )
+                        continue;
 
                      for (int d=0; d<3; d++)
                      {
@@ -320,6 +327,9 @@ void Par_Aux_GetConservedQuantity( double &Mass_Total, double &MomX_Total, doubl
                   for (int p=0; p<amr->patch[0][lv][PID]->NPar; p++)
                   {
                      ParID = amr->patch[0][lv][PID]->ParList[p];
+
+                     if ( PType[ParID] == PTYPE_TRACER || Mass[ParID] < 0.0 )
+                        continue;
 
                      for (int d=0; d<3; d++)
                      {
@@ -397,4 +407,4 @@ void Par_Aux_GetConservedQuantity( double &Mass_Total, double &MomX_Total, doubl
 
 
 
-#endif // #ifdef PARTICLE
+#endif // #ifdef MASSIVE_PARTICLES

@@ -1,5 +1,3 @@
-
-
 # =================================================================================================================
 # NOTE:
 # 1. Comment symbol: #
@@ -187,3 +185,14 @@ OPT__CK_NEGATIVE              0           # check the negative values: (0=off, 1
 OPT__CK_MEMFREE               1.0         # check the free memory in GB (0=off, >0=threshold) [1.0]
 OPT__CK_INTERFACE_B           0           # check the consistency of patch interface B field [0] ##MHD ONLY##
 OPT__CK_DIVERGENCE_B          0           # check the divergence-free constraint on B field (0=off, 1=on, 2=on+verbose) [0] ##MHD ONLY##
+
+
+# particle (PARTICLE only)
+PAR_NPAR                      100000      # total number of particles (must be set for PAR_INIT == 1/3)
+PAR_INIT                      1           # initialization option for particles: (1=FUNCTION, 2=RESTART, 3=FILE->"PAR_IC")
+PAR_INTERP                    2           # particle interpolation scheme: (1=NGP, 2=CIC, 3=TSC) [2]
+PAR_INTEG                     2           # particle integration scheme: (1=Euler, 2=KDK, 3=RK2) [2]
+TRACER_INTEG		      2
+PAR_IMPROVE_ACC               1           # improve force accuracy at patch boundaries [1] ##STORE_POT_GHOST and PAR_INTERP=2/3 ONLY##
+PAR_PREDICT_POS               1           # predict particle position during mass assignment [1]
+PAR_REMOVE_CELL              -1.0         # remove particles X-root-cells from the boundaries (non-periodic BC only; <0=auto) [-1.0]

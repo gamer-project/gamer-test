@@ -2,10 +2,15 @@
 
 #ifdef PARTICLE
 
-#ifndef GRAVITY
-#   error : ERROR : GRAVITY is not defined !!
-#endif
+//#ifndef GRAVITY
+//#   error : ERROR : GRAVITY is not defined !!
+//#endif
 
+#ifdef GRAVITY
+#include "CUPOT.h"
+extern double ExtPot_AuxArray[EXT_POT_NAUX_MAX];
+extern double ExtAcc_AuxArray[EXT_ACC_NAUX_MAX];
+#endif
 
 
 
@@ -53,6 +58,10 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
                          const bool StoreAcc, const bool UseStoredAcc )
 {
 
+#  ifndef GRAVITY
+   return;
+#  else
+
    const ParInterp_t IntScheme    = amr->Par->Interp;
    const bool   UsePot            = ( OPT__SELF_GRAVITY  ||  OPT__EXT_POT );
    const bool   IntPhase_No       = false;
@@ -79,7 +88,7 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
    real *ParAcc[3] = { amr->Par->AccX, amr->Par->AccY, amr->Par->AccZ };
 #  endif
    real *ParTime   = amr->Par->Time;
-
+   real *ParType   = amr->Par->Type;
 
 // determine PotSg for STORE_POT_GHOST
 #  ifdef STORE_POT_GHOST
@@ -180,6 +189,7 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
    long ParID;
    real Acc_Temp[3], dt, dt_half;
 
+   long ptype_tracer = (long)PTYPE_TRACER;
 
 // loop over all **real** patch groups
 #  pragma omp for schedule( PAR_OMP_SCHED, PAR_OMP_SCHED_CHUNK )
@@ -192,7 +202,11 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
 
       for (int PID=PID0; PID<PID0+8; PID++)
       {
-         if ( amr->patch[0][lv][PID]->NPar > 0 )
+         long NMassivePar = 0;
+         for (long i=ptype_tracer+1; i<PAR_NTYPE; i++) 
+            NMassivePar += amr->patch[0][lv][PID]->NParType[i];
+
+         if ( NMassivePar > 0 )
          {
             if ( UpdateStep == PAR_UPSTEP_CORR )
             {
@@ -200,7 +214,7 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
                {
                   ParID = amr->patch[0][lv][PID]->ParList[p];
 
-                  if ( ParTime[ParID] < (real)0.0 )
+                  if ( ParTime[ParID] < (real)0.0 && ParType[ParID] != PTYPE_TRACER )
                   {
                      GotYou = true;
                      break;
@@ -228,7 +242,10 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
          {
             for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
             {
-               if ( amr->patch[0][lv][PID]->NPar == 0 )  continue;   // skip patches with no particles
+               long NMassivePar = 0;
+               for (long i=ptype_tracer+1; i<PAR_NTYPE; i++) 
+                  NMassivePar += amr->patch[0][lv][PID]->NParType[i];
+               if ( NMassivePar == 0 )  continue;   // skip patches with no massive particles
 
 //             temporal interpolation is required for correcting the velocity of particles just crossing
 //             from fine to coarse grids
@@ -256,7 +273,11 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
 
       for (int PID=PID0, P=0; PID<PID0+8; PID++, P++)
       {
-         if ( amr->patch[0][lv][PID]->NPar == 0 )  continue;   // skip patches with no particles
+         long NMassivePar = 0;
+         for (long i=ptype_tracer+1; i<PAR_NTYPE; i++) 
+            NMassivePar += amr->patch[0][lv][PID]->NParType[i];
+
+         if ( NMassivePar == 0 )  continue;   // skip patches with no massive particles
 
          if ( !UseStoredAcc )
          {
@@ -310,6 +331,10 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
          for (int p=0; p<amr->patch[0][lv][PID]->NPar; p++)
          {
             ParID = amr->patch[0][lv][PID]->ParList[p];
+
+//          skip tracer particles
+            if ( ParType[ParID] == PTYPE_TRACER )
+               continue;
 
 //          determine time-step and skip particles with zero or negative time-step
             if ( UpdateStep == PAR_UPSTEP_PRED )
@@ -599,6 +624,8 @@ void Par_UpdateParticle( const int lv, const double TimeNew, const double TimeOl
    delete [] Acc;
 
    } // end of OpenMP parallel region
+
+#endif // #ifndef GRAVITY
 
 } // FUNCTION : Par_UpdateParticle
 

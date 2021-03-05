@@ -27,11 +27,11 @@ static FieldIdx_t Plummer_Idx_Cloud1 = Idx_Undefined;
 // =======================================================================================
 
 // problem-specific function prototypes
-#ifdef PARTICLE
+#ifdef MASSIVE_PARTICLES
 void Par_Init_ByFunction_Plummer( const long NPar_ThisRank, const long NPar_AllRank,
                                   real *ParMass, real *ParPosX, real *ParPosY, real *ParPosZ,
                                   real *ParVelX, real *ParVelY, real *ParVelZ, real *ParTime,
-                                  real *AllAttribute[PAR_NATT_TOTAL] );
+                                  real *ParType, real *AllAttribute[PAR_NATT_TOTAL] );
 #endif
 void Init_ExtAcc_Plummer();
 void Init_ExtPot_Plummer();
@@ -477,13 +477,13 @@ void Init_TestProb_Hydro_Plummer()
 
    Init_Function_User_Ptr  = SetGridIC;
    Init_Field_User_Ptr     = AddNewField_Plummer;
-#  ifdef PARTICLE
-   Par_Init_ByFunction_Ptr = Par_Init_ByFunction_Plummer;
-#  endif
 #  ifdef GRAVITY
    Init_ExtAcc_Ptr         = Init_ExtAcc_Plummer;
    if ( OPT__EXT_POT == EXT_POT_FUNC )
    Init_ExtPot_Ptr         = Init_ExtPot_Plummer;
+#  ifdef MASSIVE_PARTICLES
+   Par_Init_ByFunction_Ptr  = Par_Init_ByFunction_Plummer;
+#  endif
 #  endif
 #  endif // #if ( MODEL == HYDRO )
 

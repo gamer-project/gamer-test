@@ -7,7 +7,7 @@
 static double CurrentSyncTime   = -1.0;
 static long   Backup_NPar       = -1;
 static long  *Backup_ParID      = NULL;
-static real (*Backup_ParAtt)[7] = NULL;
+static real (*Backup_ParAtt)[8] = NULL;
 
 
 
@@ -64,12 +64,13 @@ int Par_Synchronize( const double SyncTime, const ParSync_t SyncOption )
       MemSize       = MemUnit;
       Backup_NPar   = 0;
       Backup_ParID  = ( long *      )malloc(   MemSize*sizeof(long) );
-      Backup_ParAtt = ( real (*)[7] )malloc( 7*MemSize*sizeof(real) );  // 7 = pos*3, vel*3, time
+      Backup_ParAtt = ( real (*)[8] )malloc( 8*MemSize*sizeof(real) );  // 8 = pos*3, vel*3, time, type
    }
 
 
 // synchronize all active particles
          real *ParTime   =   amr->Par->Time;
+         real *ParType   =   amr->Par->Type;
          real *ParPos[3] = { amr->Par->PosX, amr->Par->PosY, amr->Par->PosZ };
          real *ParVel[3] = { amr->Par->VelX, amr->Par->VelY, amr->Par->VelZ };
 #  ifdef STORE_PAR_ACC
@@ -98,7 +99,7 @@ int Par_Synchronize( const double SyncTime, const ParSync_t SyncOption )
             {
                MemSize      += MemUnit;
                Backup_ParID  = ( long *      )realloc( Backup_ParID,    MemSize*sizeof(long) );
-               Backup_ParAtt = ( real (*)[7] )realloc( Backup_ParAtt, 7*MemSize*sizeof(real) );
+               Backup_ParAtt = ( real (*)[8] )realloc( Backup_ParAtt, 8*MemSize*sizeof(real) );
             }
 
             Backup_ParID [ Backup_NPar ]    = p;
@@ -109,6 +110,7 @@ int Par_Synchronize( const double SyncTime, const ParSync_t SyncOption )
             Backup_ParAtt[ Backup_NPar ][4] = ParVel[1][p];
             Backup_ParAtt[ Backup_NPar ][5] = ParVel[2][p];
             Backup_ParAtt[ Backup_NPar ][6] = ParTime  [p];
+            Backup_ParAtt[ Backup_NPar ][7] = ParType  [p];
 
             Backup_NPar ++;
          }
@@ -157,8 +159,9 @@ void Par_Synchronize_Restore( const double SyncTime )
    if ( Backup_NPar < 0 )  Aux_Error( ERROR_INFO, "backup arrays have NOT been allocated !!\n" );
 
 
-// restore particle attributes (position, velocity, and time)
+// restore particle attributes (position, velocity, time, and type)
    real *ParTime   =   amr->Par->Time;
+   real *ParType   =   amr->Par->Type;
    real *ParPos[3] = { amr->Par->PosX, amr->Par->PosY, amr->Par->PosZ };
    real *ParVel[3] = { amr->Par->VelX, amr->Par->VelY, amr->Par->VelZ };
    long ParID;
@@ -173,6 +176,7 @@ void Par_Synchronize_Restore( const double SyncTime )
       ParVel[1][ParID] = Backup_ParAtt[p][4];
       ParVel[2][ParID] = Backup_ParAtt[p][5];
       ParTime  [ParID] = Backup_ParAtt[p][6];
+      ParType  [ParID] = Backup_ParAtt[p][7];
    }
 
 

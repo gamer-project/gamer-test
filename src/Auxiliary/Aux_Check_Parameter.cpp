@@ -1247,9 +1247,9 @@ void Aux_Check_Parameter()
 
 // errors
 // ------------------------------
-#  ifndef GRAVITY
-#     error : ERROR : currently PARTICLE must work with GRAVITY !!
-#  endif
+//#  ifndef GRAVITY
+//#     error : ERROR : currently PARTICLE must work with GRAVITY !!
+//#  endif
 
 #  ifdef COMOVING
 #     error : ERROR : currently PARTICLE dost NOT support COMOVING !!
@@ -1272,6 +1272,7 @@ void Aux_Check_Parameter()
                     amr->Par->NPar_AcPlusInac, MPI_Rank );
    }
 
+#  ifdef GRAVITY
 #  ifndef STORE_POT_GHOST
    if ( amr->Par->ImproveAcc )
       Aux_Error( ERROR_INFO, "PAR_IMPROVE_ACC must work with STORE_POT_GHOST !!\n" );
@@ -1292,7 +1293,7 @@ void Aux_Check_Parameter()
          Aux_Error( ERROR_INFO, "\"%s\" does NOT work for NX0_TOT[%d] = 2*PATCH_SIZE when periodic BC is adopted !!\n",
                     "Par_MassAssignment()", d );
    }
-
+#  endif // #ifdef GRAVITY
 
 // warning
 // ------------------------------
@@ -1312,8 +1313,10 @@ void Aux_Check_Parameter()
       Aux_Message( stderr, "WARNING : STORE_POT_GHOST is useless when PAR_IMPROVE_ACC is disabled !!\n" );
 #  endif
 
+#  ifdef GRAVITY
    if ( OPT__GRA_P5_GRADIENT )
       Aux_Message( stderr, "WARNING : currently \"%s\" is not applied to particle update !!\n", "OPT__GRA_P5_GRADIENT" );
+#  endif
 
    } // if ( MPI_Rank == 0 )
 

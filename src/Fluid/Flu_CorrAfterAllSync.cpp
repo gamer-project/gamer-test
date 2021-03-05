@@ -113,7 +113,7 @@ void Flu_CorrAfterAllSync()
 
 
 // 4. recalculate particle acceleration
-#  if ( defined PARTICLE  &&  defined STORE_PAR_ACC )
+#  if ( defined MASSIVE_PARTICLES  &&  defined STORE_PAR_ACC  )
    if ( OPT__VERBOSE  &&  MPI_Rank == 0 )    Aux_Message( stdout, "      recalculate particle acceleration     ... " );
 
    const bool StoreAcc_Yes    = true;

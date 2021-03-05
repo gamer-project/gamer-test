@@ -39,7 +39,9 @@ void Aux_Error( const char *File, const int Line, const char *Func, const char *
 //                ParICFormat             : Data format of the particle initialization file (1=[att][id], 2=[id][att])
 //                ParICMass               : Assign this mass to all particles for Init=3
 //                Interp                  : Mass/acceleration interpolation scheme (NGP,CIC,TSC)
+//                InterpTracer            : Velocity interpolation scheme (NGP,CIC,TSC)
 //                Integ                   : Integration scheme (PAR_INTEG_EULER, PAR_INTEG_KDK)
+//                IntegTracer             : Integration scheme for tracers (PAR_INTEG_EULER, PAR_INTEG_RK2)
 //                ImproveAcc              : Improve force accuracy around the patch boundaries
 //                                          (by using potential in the patch ghost zone instead of nearby patch
 //                                          or interpolation)
@@ -114,6 +116,7 @@ struct Particle_t
    double        ParICMass;
    ParInterp_t   Interp;
    ParInteg_t    Integ;
+   TracerInteg_t IntegTracer;
    bool          ImproveAcc;
    bool          PredictPos;
    double        RemoveCell;
@@ -152,6 +155,7 @@ struct Particle_t
    real         *VelY;
    real         *VelZ;
    real         *Time;
+   real         *Type;
 #  ifdef STORE_PAR_ACC
    real         *AccX;
    real         *AccY;
@@ -177,6 +181,7 @@ struct Particle_t
       ParICMass           = -1.0;
       Interp              = PAR_INTERP_NONE;
       Integ               = PAR_INTEG_NONE;
+      IntegTracer         = TRACER_INTEG_NONE;
       ImproveAcc          = true;
       PredictPos          = true;
       RemoveCell          = -999.9;
@@ -224,6 +229,7 @@ struct Particle_t
       VelY = NULL;
       VelZ = NULL;
       Time = NULL;
+      Type = NULL;
 #     ifdef STORE_PAR_ACC
       AccX = NULL;
       AccY = NULL;
@@ -356,7 +362,8 @@ struct Particle_t
       VelY = Attribute[PAR_VELY];
       VelZ = Attribute[PAR_VELZ];
       Time = Attribute[PAR_TIME];
-#     ifdef STORE_PAR_ACC
+      Type = Attribute[PAR_TYPE];
+#     if ( defined STORE_PAR_ACC  &&  defined GRAVITY )
       AccX = Attribute[PAR_ACCX];
       AccY = Attribute[PAR_ACCY];
       AccZ = Attribute[PAR_ACCZ];
@@ -436,7 +443,8 @@ struct Particle_t
             VelY = Attribute[PAR_VELY];
             VelZ = Attribute[PAR_VELZ];
             Time = Attribute[PAR_TIME];
-#           ifdef STORE_PAR_ACC
+            Type = Attribute[PAR_TYPE];
+#           if ( defined STORE_PAR_ACC  &&  defined GRAVITY )
             AccX = Attribute[PAR_ACCX];
             AccY = Attribute[PAR_ACCY];
             AccZ = Attribute[PAR_ACCZ];

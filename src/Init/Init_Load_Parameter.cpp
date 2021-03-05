@@ -79,6 +79,7 @@ void Init_Load_Parameter()
    ReadPara->Add( "PAR_IC_MASS",                &amr->Par->ParICMass,            -1.0,             NoMin_double,  NoMax_double   );
    ReadPara->Add( "PAR_INTERP",                 &amr->Par->Interp,                PAR_INTERP_CIC,  1,             3              );
    ReadPara->Add( "PAR_INTEG",                  &amr->Par->Integ,                 PAR_INTEG_KDK,   1,             2              );
+   ReadPara->Add( "TRACER_INTEG",               &amr->Par->IntegTracer,           TRACER_INTEG_RK2,   1,             2              );
    ReadPara->Add( "PAR_IMPROVE_ACC",            &amr->Par->ImproveAcc,            true,            Useless_bool,  Useless_bool   );
    ReadPara->Add( "PAR_PREDICT_POS",            &amr->Par->PredictPos,            true,            Useless_bool,  Useless_bool   );
 // do not check PAR_REMOVE_CELL since it may be reset by Init_ResetDefaultParameter()

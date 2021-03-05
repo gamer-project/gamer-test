@@ -40,7 +40,7 @@ bool Flag_AGORA( const int i, const int j, const int k, const int lv, const int 
 void Par_Init_ByFunction_AGORA( const long NPar_ThisRank, const long NPar_AllRank,
                                 real *ParMass, real *ParPosX, real *ParPosY, real *ParPosZ,
                                 real *ParVelX, real *ParVelY, real *ParVelZ, real *ParTime,
-                                real *AllAttribute[PAR_NATT_TOTAL] );
+                                real *ParType, real *AllAttribute[PAR_NATT_TOTAL] );
 #endif
 
 
@@ -143,7 +143,7 @@ void Validate()
 
 
 
-#if ( MODEL == HYDRO  &&  defined PARTICLE )
+#if ( MODEL == HYDRO  && defined MASSIVE_PARTICLES )
 //-------------------------------------------------------------------------------------------------------
 // Function    :  SetParameter
 // Description :  Load and set the problem-specific runtime parameters
@@ -494,7 +494,7 @@ void AddNewParticleAttribute_AGORA()
       Idx_ParMetalFrac = AddParticleAttribute( "ParMetalFrac" );
 
 } // FUNCTION : AddNewParticleAttribute_AGORA
-#endif // #if ( MODEL == HYDRO  &&  defined PARTICLE )
+#endif // #if ( MODEL == HYDRO  &&  defined MASSIVE_PARTICLES )
 
 
 
@@ -518,7 +518,7 @@ void Init_TestProb_Hydro_AGORA_IsolatedGalaxy()
    Validate();
 
 
-#  if ( MODEL == HYDRO  &&  defined PARTICLE )
+#  if ( MODEL == HYDRO  &&  defined MASSIVE_PARTICLES )
 // set the problem-specific runtime parameters
    SetParameter();
 
@@ -530,7 +530,7 @@ void Init_TestProb_Hydro_AGORA_IsolatedGalaxy()
    End_User_Ptr                = End_AGORA;
    Par_Init_ByFunction_Ptr     = Par_Init_ByFunction_AGORA;
    Par_Init_Attribute_User_Ptr = AddNewParticleAttribute_AGORA;
-#  endif // if ( MODEL == HYDRO  &&  defined PARTICLE )
+#  endif // if ( MODEL == HYDRO  &&  defined MASSIVE_PARTICLES )
 
 
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "%s ... done\n", __FUNCTION__ );
