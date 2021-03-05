@@ -44,7 +44,7 @@ void Par_Aux_GetConservedQuantity( double &Mass_Total, double &MomX_Total, doubl
    for (long p=0; p<amr->Par->NPar_AcPlusInac; p++)
    {
 //    skip inactive, massless, and tracer particles
-      if ( amr->Par->Mass[p] > 0.0 || amr->Par->Type[p] == PTYPE_TRACER)
+      if ( amr->Par->Mass[p] > 0.0 && amr->Par->Type[p] != PTYPE_TRACER)
       {
          Mass_ThisRank += amr->Par->Mass[p];
          MomX_ThisRank += amr->Par->Mass[p]*amr->Par->VelX[p];
