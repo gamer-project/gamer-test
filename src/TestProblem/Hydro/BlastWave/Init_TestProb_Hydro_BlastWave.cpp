@@ -270,9 +270,6 @@ void Init_TestProb_Hydro_BlastWave()
 #  ifdef MHD
    Init_Function_BField_User_Ptr = SetBFieldIC;
 #  endif
-#  ifdef PARTICLE
-   Par_Init_ByFunction_Ptr       = Par_Init_ByFunction_BlastWave;
-#  endif
 #  endif // #if ( MODEL == HYDRO )
 
 
