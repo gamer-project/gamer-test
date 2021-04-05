@@ -1456,6 +1456,7 @@ void Check_Makefile( const char *FileName, const int FormatVersion )
 #  ifdef PARTICLE
    LoadField( "StoreParAcc",            &RS.StoreParAcc,            SID, TID, NonFatal, &RT.StoreParAcc,            1, NonFatal );
    LoadField( "StarFormation",          &RS.StarFormation,          SID, TID, NonFatal, &RT.StarFormation,          1, NonFatal );
+   LoadField( "Feedback",               &RS.Feedback,               SID, TID, NonFatal, &RT.Feedback,               1, NonFatal );
    if ( FormatVersion >= 2300 )
    LoadField( "Par_NAttUser",           &RS.Par_NAttUser,           SID, TID, NonFatal, &RT.Par_NAttUser,           1,    Fatal );
    else
@@ -1940,6 +1941,14 @@ void Check_InputPara( const char *FileName, const int FormatVersion )
    LoadField( "SF_CreateStar_MassEff",      &RS.SF_CreateStar_MassEff,      SID, TID, NonFatal, &RT.SF_CreateStar_MassEff,      1, NonFatal );
    LoadField( "SF_CreateStar_MinStarMass",  &RS.SF_CreateStar_MinStarMass,  SID, TID, NonFatal, &RT.SF_CreateStar_MinStarMass,  1, NonFatal );
    LoadField( "SF_CreateStar_MaxStarMFrac", &RS.SF_CreateStar_MaxStarMFrac, SID, TID, NonFatal, &RT.SF_CreateStar_MaxStarMFrac, 1, NonFatal );
+#  endif
+
+// feedback
+#  ifdef FEEDBACK
+   LoadField( "FB_Level",                &RS.FB_Level,                SID, TID, NonFatal, &RT.FB_Level,                 1, NonFatal );
+   LoadField( "FB_RSeed",                &RS.FB_RSeed,                SID, TID, NonFatal, &RT.FB_RSeed,                 1, NonFatal );
+   LoadField( "FB_SNe",                  &RS.FB_SNe,                  SID, TID, NonFatal, &RT.FB_SNe,                   1, NonFatal );
+   LoadField( "FB_User",                 &RS.FB_User,                 SID, TID, NonFatal, &RT.FB_User,                  1, NonFatal );
 #  endif
 
 // initialization

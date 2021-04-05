@@ -118,6 +118,12 @@ void Init_GAMER( int *argc, char ***argv )
    Src_Init();
 
 
+// initialize the feedback routines
+#  ifdef FEEDBACK
+   FB_Init();
+#  endif
+
+
 // initialize the user-defined derived fields
    if ( OPT__OUTPUT_USER_FIELD )
    {

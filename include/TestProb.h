@@ -65,6 +65,9 @@ extern void (*EoS_End_Ptr)();
 #endif
 extern void (*Src_Init_User_Ptr)();
 extern void (*Init_DerivedField_User_Ptr)();
+#ifdef FEEDBACK
+extern void (*FB_Init_User_Ptr)();
+#endif
 
 
 // helper macro for printing warning messages when resetting parameters

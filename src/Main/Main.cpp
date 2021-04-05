@@ -258,6 +258,13 @@ int  UserDerField_Num                  = -1;    // must be negative for Output_D
 char (*UserDerField_Label)[MAX_STRING] = NULL;
 char (*UserDerField_Unit )[MAX_STRING] = NULL;
 
+// (2-12) feedback
+#ifdef FEEDBACK
+int  FB_LEVEL, FB_RSEED;
+bool FB_SNE, FB_USER;
+bool FB_Any;
+#endif
+
 
 // 3. CPU (host) arrays for transferring data between CPU and GPU
 // =======================================================================================================
@@ -438,6 +445,7 @@ Timer_t *Timer_Gra_Advance[NLEVEL];
 Timer_t *Timer_Src_Advance[NLEVEL];
 Timer_t *Timer_Che_Advance[NLEVEL];
 Timer_t *Timer_SF         [NLEVEL];
+Timer_t *Timer_FB_Advance [NLEVEL];
 Timer_t *Timer_FixUp      [NLEVEL];
 Timer_t *Timer_Flag       [NLEVEL];
 Timer_t *Timer_Refine     [NLEVEL];

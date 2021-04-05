@@ -215,6 +215,15 @@ void Init_Load_Parameter()
 #  endif
 
 
+// feedback
+#  ifdef FEEDBACK
+   ReadPara->Add( "FB_LEVEL",                   &FB_LEVEL,                       -1,               NoMin_int,     TOP_LEVEL      );
+   ReadPara->Add( "FB_RSEED",                   &FB_RSEED,                        456,             0,             NoMax_int      );
+   ReadPara->Add( "FB_SNE",                     &FB_SNE,                          false,           Useless_bool,  Useless_bool   );
+   ReadPara->Add( "FB_USER",                    &FB_USER,                         false,           Useless_bool,  Useless_bool   );
+#  endif
+
+
 // fluid solvers in HYDRO
 #  if ( MODEL == HYDRO )
 #  if ( EOS == EOS_GAMMA )

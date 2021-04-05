@@ -179,6 +179,13 @@ SF_CREATE_STAR_MIN_STAR_MASS  0.0         # minimum star particle mass for the s
 SF_CREATE_STAR_MAX_STAR_MFRAC 0.5         # maximum gas mass fraction allowed to convert to stars per substep [0.5]
 
 
+# feedback (FEEDBACK only)
+FB_LEVEL                     -1           # AMR level to apply feedback (must be MAX_LEVEL for now; <0=auto -> MAX_LEVEL) [-1]
+FB_RSEED                      456         # random seed [456]
+FB_SNE                        0           # supernova explosion feedback [0]
+FB_USER                       0           # user-defined feedback [0]
+
+
 # fluid solver in HYDRO (MODEL==HYDRO only)
 GAMMA                         1.666666667 # ratio of specific heats (i.e., adiabatic index) [5.0/3.0] ##EOS_GAMMA ONLY##
 MOLECULAR_WEIGHT              0.6         # mean molecular weight [0.6]

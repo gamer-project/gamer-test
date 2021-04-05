@@ -64,8 +64,8 @@ extern bool Particle_Collected;
 //                                         (do nothing if FaLv==0) (for LOAD_BALANCE only)
 //                JustCountNPar : Just count the number of particles in each real patch at FaLv. Don't collect
 //                                particle indices (or collect particle mass and position for LOAD_BALANCE)
-//                TimingSendPar : Measure the elapsed time of the routine "Par_LB_SendParticleData" in
-//                                Par_LB_CollectParticle2OneLevel (for LOAD_BALANCE only)
+//                TimingSendPar : Measure the elapsed time of Par_LB_SendParticleData() in
+//                                Par_LB_CollectParticle2OneLevel() (for LOAD_BALANCE only)
 //
 // Return      :  NPar_Copy and ParList_Copy (if JustCountNPar == false) for all non-leaf real patches at FaLv
 //-------------------------------------------------------------------------------------------------------

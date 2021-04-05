@@ -143,6 +143,9 @@ SIMU_OPTION += -DSTORE_PAR_ACC
 # --> must turn on STORE_POT_GHOST when STORE_PAR_ACC is adopted
 #SIMU_OPTION += -DSTAR_FORMATION
 
+# feedback from particles to grids
+#SIMU_OPTION += -DFEEDBACK
+
 # number of user-defined particle attributes
 # --> set it to 0 or comment it out if none is required
 SIMU_OPTION += -DPAR_NATT_USER=0
@@ -566,7 +569,7 @@ CPU_FILE    += Par_Init_ByFunction.cpp  Par_Output_TextFile.cpp  Par_FindHomePat
                Par_PassParticle2Sibling.cpp  Par_CountParticleInDescendant.cpp  Par_Aux_GetConservedQuantity.cpp \
                Par_Aux_InitCheck.cpp  Par_Aux_Record_ParticleCount.cpp  Par_PassParticle2Son_MultiPatch.cpp \
                Par_Synchronize.cpp  Par_PredictPos.cpp  Par_Init_ByFile.cpp  Par_Init_Attribute.cpp \
-               Par_AddParticleAfterInit.cpp  Par_PassParticle2Son_SinglePatch.cpp
+               Par_AddParticleAfterInit.cpp  Par_PassParticle2Son_SinglePatch.cpp  Par_Sort.cpp
 
 vpath %.cu     Particle/GPU
 vpath %.cpp    Particle/CPU  Particle
@@ -670,6 +673,15 @@ CPU_FILE    += SF_CreateStar.cpp  SF_CreateStar_AGORA.cpp
 
 vpath %.cpp    StarFormation
 endif # STAR_FORMATION
+
+
+# feedback source files (included only if "FEEDBACK" is turned on)
+# ------------------------------------------------------------------------------------
+ifeq "$(filter -DFEEDBACK, $(SIMU_OPTION))" "-DFEEDBACK"
+CPU_FILE    += FB_AdvanceDt.cpp  FB_Init.cpp  FB_End.cpp  FB_User_Template.cpp  FB_SNe.cpp
+
+vpath %.cpp    Feedback  Feedback/User_Template  Feedback/SNe
+endif # FEEDBACK
 
 
 # test problem source files

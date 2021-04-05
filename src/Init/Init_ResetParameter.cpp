@@ -873,6 +873,17 @@ void Init_ResetParameter()
 #  endif // #ifdef STAR_FORMATION
 
 
+// feedback options
+#  ifdef FEEDBACK
+   if ( FB_LEVEL < 0 )
+   {
+      FB_LEVEL = MAX_LEVEL;
+
+      PRINT_WARNING( FB_LEVEL, FORMAT_INT, "" );
+   }
+#  endif // #ifdef FEEDBACK
+
+
 // convert to code units
 #  ifdef STAR_FORMATION
 // SF_CREATE_STAR_MIN_GAS_DENS: HI count/cm^3 --> mass density in code units
