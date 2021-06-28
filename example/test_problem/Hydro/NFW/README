@@ -1,0 +1,28 @@
+Compilation flags:
+========================================
+Enable : MODEL=HYDRO, GRAVITY, PARTICLE, SUPPORT_HDF5, SUPPORT_GSL, UNSPLIT_GRAVITY, CONSERVE_MASS, LAPLACIAN_4TH
+Disable: COMOVING
+
+
+Default setup:
+========================================
+
+
+Note:
+========================================
+1. You can put many clouds particles in HYDRO mode, and observe their evolution through gravity.
+   To assign the number of clouds, input the desired number in variable "NFW_num" in "Init_TestProb_HYDRO_NFW.cpp".
+   And please input the file names of test problem parameters in "string TestProb_FileName[NFW_num]" for each cloud respectively.
+2. Test the evolution of the all sorts of models, like Plummer, NFW, Burkert, Jaffe, Hernquist, Einasto
+   To switch among the types of models, find variable "string TypeNames[NFW_num]" and edit it in "Init_TestProb_HYDRO_NFW.cpp".
+   Available options include:
+   Plummer
+   NFW
+   Burkert
+   Jaffe
+   Hernquist
+   Einasto
+   UNKNOWN
+   If you want to initialize a model with some given density profile in the form of a table, please use option "UNKNOWN",and input
+      your file names in "string Profile_FileName[NFW_num]"; otherwise input "NONE" in it.
+3. Sometimes the spatial resolution is not small enough for some models like Jaffe, please increase MAX_LEVEL in "Input_Parameter"

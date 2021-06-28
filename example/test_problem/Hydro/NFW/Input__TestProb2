@@ -1,0 +1,18 @@
+# problem-specific runtime parameters
+Models_RSeed           124                  # random seed for setting particle position and velocity (>=0) [123]
+Models_Rho0            1.0                  # peak density [1.0]
+Models_R0              0.01                 # scale radius [0.1]
+Models_MaxR            0.2                  # maximum radius for particles [0.375]
+Models_CenterX         2.0                  # central x coordinate [box center]
+Models_CenterY         1.5                  # central y coordinate [box center]
+Models_CenterZ         1.5                  # central z coordinate [box center]
+Models_BulkVelX        0.0                  # bulk velocity in x
+Models_BulkVelY        0.0                  # bulk velocity in y
+Models_BulkVelZ        0.0                  # bulk velocity in z
+Models_GasMFrac        0.001                # gas mass fraction (0.0<input<=1.0; useless when PARTICLE is off), as small as possible [0.001]
+Models_MassProfNBin    1000                 # number of radial bins in the mass profile table [1000]
+#Models_Alpha          1                    # alpha parameter for Eiasto model [1]
+#Models_r_col          0                    # number of the column of the radius of density profile, when model is "UNKNOWN"  [0]
+#Models_rho_col        1                    # number of the column of the density of density profile, when model is "UNKNOWN"  [1]
+#Models_truncation     0                    # whether to turn on a smoothy truncation function of density near MaxR [0]
+

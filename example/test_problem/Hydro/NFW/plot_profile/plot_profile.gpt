@@ -1,0 +1,9 @@
+set title "Comparison of initial and final density profile"
+set xlabel "radius(Mpc)"
+set ylabel "density(1e16 mass of sun/(Mpc)^3)"
+set terminal png font " Times_New_Roman,12 "
+set output "Density_Profile.png"
+set logscale xy
+plot \
+"AveParDens_init" using 1:3 with linespoints linewidth 2 title "initial", \
+"AveParDens_final" using 1:3 with linespoints linewidth 2 title "final", \

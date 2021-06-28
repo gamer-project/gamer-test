@@ -1,0 +1,229 @@
+
+
+# =================================================================================================================
+# NOTE:
+# 1. Comment symbol: #
+# 2. [*]: defaults
+# 3. Parameters set to "auto" (usually by setting to a negative value) do not have deterministic default values
+#    and will be set according to the adopted compilation options and/or other runtime parameters
+# 4. To add new parameters, please edit "Init/Init_Load_Parameter.cpp"
+# 5. All dimensional variables should be set consistently with the code units (set by UNIT_L/M/T/V/D) unless
+#    otherwise specified (e.g., SF_CREATE_STAR_MIN_GAS_DENS & SF_CREATE_STAR_MIN_STAR_MASS)
+# 6. For boolean options: 0/1 -> off/on
+# =================================================================================================================
+
+
+# simulation scale
+BOX_SIZE                      3         # box size along the longest side (in Mpc/h if COMOVING is adopted)
+NX0_TOT_X                     64          # number of base-level cells along x
+NX0_TOT_Y                     64          # number of base-level cells along y
+NX0_TOT_Z                     64          # number of base-level cells along z
+OMP_NTHREAD                  -1           # number of OpenMP threads (<=0=auto -> omp_get_max_threads) [-1] ##OPENMP ONLY##
+END_T                        -1.0         # end physical time (<0=auto -> must be set by test problems or restart) [-1.0]
+END_STEP                     -1           # end step (<0=auto -> must be set by test problems or restart) [-1]
+
+
+# test problems
+TESTPROB_ID                   17          # test problem ID [0]
+                                          #   17: HYDRO NFW cloud(s) (+GRAVITY & PARTICLE)
+
+
+# code units (in cgs)
+OPT__UNIT                     0           # specify code units -> must set exactly 3 basic units below [0] ##USELESS FOR COMOVING##
+
+
+# boundary conditions
+OPT__BC_FLU_XM                1           # fluid boundary condition at the -x face: (1=periodic, 2=outflow, 3=reflecting, 4=user)
+OPT__BC_FLU_XP                1           # fluid boundary condition at the +x face: (1=periodic, 2=outflow, 3=reflecting, 4=user)
+OPT__BC_FLU_YM                1           # fluid boundary condition at the -y face: (1=periodic, 2=outflow, 3=reflecting, 4=user)
+OPT__BC_FLU_YP                1           # fluid boundary condition at the +y face: (1=periodic, 2=outflow, 3=reflecting, 4=user)
+OPT__BC_FLU_ZM                1           # fluid boundary condition at the -z face: (1=periodic, 2=outflow, 3=reflecting, 4=user)
+OPT__BC_FLU_ZP                1           # fluid boundary condition at the +z face: (1=periodic, 2=outflow, 3=reflecting, 4=user)
+OPT__BC_POT                   1           # gravity boundary condition: (1=periodic, 2=isolated)
+GFUNC_COEFF0                 -1.0         # Green's function coefficient at the origin for the isolated BC (<0=auto) [-1.0]
+
+
+# particle (PARTICLE only)
+PAR_NPAR                      20000      # total number of particles (must be set for PAR_INIT == 1/3)
+PAR_INIT                      1           # initialization option for particles: (1=FUNCTION, 2=RESTART, 3=FILE->"PAR_IC")
+PAR_INTERP                    3           # particle interpolation scheme: (1=NGP, 2=CIC, 3=TSC) [2]
+PAR_INTEG                     2           # particle integration scheme: (1=Euler, 2=KDK) [2]
+PAR_IMPROVE_ACC               1           # improve force accuracy at patch boundaries [1] ##STORE_POT_GHOST and PAR_INTERP=2/3 ONLY##
+PAR_PREDICT_POS               1           # predict particle position during mass assignment [1]
+PAR_REMOVE_CELL              -1.0         # remove particles X-root-cells from the boundaries (non-periodic BC only; <0=auto) [-1.0]
+
+
+# time-step
+DT__MAX                    0.2        
+DT__FLUID                    -1.0         # dt criterion: fluid solver CFL factor (<0=auto) [-1.0]
+DT__FLUID_INIT               -1.0         # dt criterion: DT__FLUID at the first step (<0=auto) [-1.0]
+DT__GRAVITY                  -1.0         # dt criterion: gravity solver safety factor (<0=auto) [-1.0]
+DT__PARVEL                    0.5         # dt criterion: particle velocity safety factor [0.5]
+DT__PARVEL_MAX               -1.0         # dt criterion: maximum allowed dt from particle velocity (<0=off) [-1.0]
+DT__PARACC                    0.5         # dt criterion: particle acceleration safety factor (0=off) [0.5] ##STORE_PAR_ACC ONLY##
+DT__SYNC_PARENT_LV            0.1         # dt criterion: allow dt to adjust by (1.0+DT__SYNC_PARENT) in order to synchronize
+                                          #               with the parent level (for OPT__DT_LEVEL==3 only) [0.1]
+DT__SYNC_CHILDREN_LV          0.1         # dt criterion: allow dt to adjust by (1.0-DT__SYNC_CHILDREN) in order to synchronize
+                                          #               with the children level (for OPT__DT_LEVEL==3 only; 0=off) [0.1]
+OPT__DT_USER                  0           # dt criterion: user-defined -> edit "Mis_GetTimeStep_UserCriteria.cpp" [0]
+OPT__DT_LEVEL                 3           # dt at different AMR levels (1=shared, 2=differ by two, 3=flexible) [3]
+OPT__RECORD_DT                1           # record info of the dt determination [1]
+AUTO_REDUCE_DT                1           # reduce dt automatically when the program fails (for OPT__DT_LEVEL==3 only) [1]
+AUTO_REDUCE_DT_FACTOR         0.8         # reduce dt by a factor of AUTO_REDUCE_DT_FACTOR when the program fails [0.8]
+AUTO_REDUCE_DT_FACTOR_MIN     0.1         # minimum allowed AUTO_REDUCE_DT_FACTOR after consecutive failures [0.1]
+
+
+# grid refinement (examples of Input__Flag_XXX tables are put at "example/input/")
+REGRID_COUNT                  4           # refine every REGRID_COUNT sub-step [4]
+FLAG_BUFFER_SIZE              8           # number of buffer cells for the flag operation (0~PATCH_SIZE) [PATCH_SIZE]
+FLAG_BUFFER_SIZE_MAXM1_LV     4           # FLAG_BUFFER_SIZE at the level MAX_LEVEL-1 (<0=auto -> FLAG_BUFFER_SIZE) [-1]
+FLAG_BUFFER_SIZE_MAXM2_LV    -1           # FLAG_BUFFER_SIZE at the level MAX_LEVEL-2 (<0=auto) [-1]
+MAX_LEVEL                     2           # maximum refinement level (0~NLEVEL-1) [NLEVEL-1]
+OPT__FLAG_RHO                 0           # flag: density (Input__Flag_Rho) [0]
+OPT__FLAG_RHO_GRADIENT        0           # flag: density gradient (Input__Flag_RhoGradient) [0]
+OPT__FLAG_PRES_GRADIENT       0           # flag: pressure gradient (Input__Flag_PresGradient) [0] ##HYDRO ONLY##
+OPT__FLAG_VORTICITY           0           # flag: vorticity (Input__Flag_Vorticity) [0] ##HYDRO ONLY##
+OPT__FLAG_JEANS               0           # flag: Jeans length (Input__Flag_Jeans) [0] ##HYDRO ONLY##
+OPT__FLAG_LOHNER_DENS         0           # flag: Lohner for mass density   (Input__Flag_Lohner) [0] ##BOTH HYDRO AND ELBDM##
+OPT__FLAG_LOHNER_ENGY         0           # flag: Lohner for energy density (Input__Flag_Lohner) [0] ##HYDRO ONLY##
+OPT__FLAG_LOHNER_PRES         0           # flag: Lohner for pressure       (Input__Flag_Lohner) [0] ##HYDRO ONLY##
+OPT__FLAG_LOHNER_TEMP         0           # flag: Lohner for temperature    (Input__Flag_Lohner) [0] ##HYDRO ONLY##
+OPT__FLAG_LOHNER_FORM         2           # form of Lohner: (1=FLASH-1, 2=FLASH-2, 3=form-invariant-1, 4=form-invariant-2) [2]
+OPT__FLAG_USER                0           # flag: user-defined (Input__Flag_User) -> edit "Flag_User.cpp" [0]
+OPT__FLAG_REGION              0           # flag: specify the regions **allowed** to be refined -> edit "Flag_Region.cpp" [0]
+OPT__FLAG_NPAR_PATCH          2           # flag: # of particles per patch (Input__Flag_NParPatch): (0=off, 1=itself, 2=itself+siblings) [0]
+OPT__FLAG_NPAR_CELL           0           # flag: # of particles per cell  (Input__Flag_NParCell) [0]
+OPT__FLAG_PAR_MASS_CELL       0           # flag: total particle mass per cell (Input__Flag_ParMassCell) [0]
+OPT__NO_FLAG_NEAR_BOUNDARY    0           # flag: disallow refinement near the boundaries [0]
+OPT__PATCH_COUNT              1           # record the # of patches   at each level: (0=off, 1=every step, 2=every sub-step) [1]
+OPT__PARTICLE_COUNT           1           # record the # of particles at each level: (0=off, 1=every step, 2=every sub-step) [1]
+OPT__REUSE_MEMORY             2           # reuse patch memory to reduce memory fragmentation: (0=off, 1=on, 2=aggressive) [2]
+OPT__MEMORY_POOL              0           # preallocate patches for OPT__REUSE_MEMORY=1/2 (Input__MemoryPool) [0]
+
+
+# load balance (LOAD_BALANCE only)
+LB_INPUT__WLI_MAX             0.1         # weighted-load-imbalance (WLI) threshold for redistributing all patches [0.1]
+LB_INPUT__PAR_WEIGHT          0.0         # load-balance weighting of one particle over one cell [0.0]
+OPT__RECORD_LOAD_BALANCE      1           # record the load-balance info [1]
+OPT__MINIMIZE_MPI_BARRIER     1           # minimize MPI barriers to improve load balance, especially with particles [1]
+                                          # (STORE_POT_GHOST, PAR_IMPROVE_ACC=1, OPT__TIMING_BARRIER=0 only; recommend AUTO_REDUCE_DT=0)
+
+
+# fluid solver in HYDRO (MODEL==HYDRO only)
+GAMMA                         1.666666667 # ratio of specific heats (i.e., adiabatic index) [5.0/3.0]
+MOLECULAR_WEIGHT              0.6         # mean molecular weight -> currently only for post-processing [0.6]
+MINMOD_COEFF                  1.5         # coefficient of the generalized MinMod limiter (1.0~2.0) [1.5]
+OPT__LR_LIMITER               4           # slope limiter of data reconstruction in the MHM/MHM_RP/CTU schemes:
+                                          # (0=none, 1=vanLeer, 2=generalized MinMod, 3=vanAlbada, 4=vanLeer+generalized MinMod) [4]
+OPT__1ST_FLUX_CORR            2           # correct unphysical results (defined by MIN_DENS/PRES) by the 1st-order fluxes:
+                                          # (0=off, 1=3D, 2=3D+1D) [2] ##MHM/MHM_RP/CTU ONLY##
+OPT__1ST_FLUX_CORR_SCHEME     1           # Riemann solver for OPT__1ST_FLUX_CORR (0=none, 1=Roe, 2=HLLC 3=HLLE) [1]
+DUAL_ENERGY_SWITCH            2.0e-2      # apply dual-energy if E_int/E_kin < DUAL_ENERGY_SWITCH [2.0e-2] ##DUAL_ENERGY ONLY##
+
+
+# fluid solver in ELBDM (MODEL==ELBDM only)
+ELBDM_MASS                    8.1e-18     # particle mass in ev/c^2 (input unit is fixed even when OPT__UNIT or COMOVING is on)
+ELBDM_PLANCK_CONST           1.0         # reduced Planck constant (will be overwritten if OPT__UNIT or COMOVING is on)
+ELBDM_TAYLOR3_COEFF           0.166666667 # 3rd Taylor expansion coefficient [1.0/6.0] ##USELESS if ELBDM_TAYLOR3_AUTO is on##
+ELBDM_TAYLOR3_AUTO            1           # Optimize ELBDM_TAYLOR3_COEFF automatically to minimize the damping at kmax [1]
+ELBDM_REMOVE_MOTION_CM        0           # remove the motion of center-of-mass (must enable OPT__CK_CONSERVATION):
+                                          # (0=off, 1=init, 2=every step) [0]
+
+# fluid solvers in all models
+FLU_GPU_NPGROUP              -1           # number of patch groups sent into the CPU/GPU fluid solver (<=0=auto) [-1]
+GPU_NSTREAM                  -1           # number of CUDA streams for the asynchronous memory copy in GPU (<=0=auto) [-1]
+OPT__FIXUP_FLUX               1           # correct coarse grids by the fine-grid boundary fluxes [1] ##HYDRO and ELBDM ONLY##
+OPT__FIXUP_RESTRICT           1           # correct coarse grids by averaging the fine-grid data [1]
+OPT__CORR_AFTER_ALL_SYNC     -1           # apply various corrections after all levels are synchronized (see "Flu_CorrAfterAllSync"):
+                                          # (-1=auto, 0=off, 1=every step, 2=before dump) [-1]
+OPT__NORMALIZE_PASSIVE        1           # ensure "sum(passive_scalar_density) == gas_density" [1]
+OPT__OVERLAP_MPI              0           # overlap MPI communication with CPU/GPU computations [0] ##NOT SUPPORTED YET##
+OPT__RESET_FLUID              0           # reset fluid variables after each update -> edit "Flu_ResetByUser.cpp" [0]
+MIN_DENS                      0.0         # minimum mass density (must >= 0.0) [0.0] ##HYDRO, MHD, and ELBDM ONLY##
+MIN_PRES                      1.0e-15     # minimum pressure     (must >= 0.0) [0.0] ##HYDRO and MHD ONLY##
+JEANS_MIN_PRES                0           # minimum pressure estimated from the Jeans length [0] ##HYDRO/MHD and GRAVITY ONLY##
+JEANS_MIN_PRES_LEVEL         -1           # for JEANS_MIN_PRES; ensure Jeans length is resolved by JEANS_MIN_PRES_NCELL*dh[JEANS_MIN_PRES_LEVEL]
+                                          # (<0=auto -> MAX_LEVEL) [-1]
+JEANS_MIN_PRES_NCELL          4           # for JEANS_MIN_PRES; see JEANS_MIN_PRES_LEVEL [4]
+
+
+# gravity solvers in all models
+NEWTON_G                      1.0         # gravitational constant (will be overwritten if OPT__UNIT or COMOVING is on)
+SOR_OMEGA                    -1.0         # over-relaxation parameter in SOR: (<0=auto) [-1.0]
+SOR_MAX_ITER                 -1           # maximum number of iterations in SOR: (<0=auto) [-1]
+SOR_MIN_ITER                 -1           # minimum number of iterations in SOR: (<0=auto) [-1]
+MG_MAX_ITER                  -1           # maximum number of iterations in multigrid: (<0=auto) [-1]
+MG_NPRE_SMOOTH               -1           # number of pre-smoothing steps in multigrid: (<0=auto) [-1]
+MG_NPOST_SMOOTH              -1           # number of post-smoothing steps in multigrid: (<0=auto) [-1]
+MG_TOLERATED_ERROR           -1.0         # maximum tolerated error in multigrid (<0=auto) [-1.0]
+POT_GPU_NPGROUP              -1           # number of patch groups sent into the CPU/GPU Poisson solver (<=0=auto) [-1]
+OPT__GRA_P5_GRADIENT          0           # 5-points gradient in the Gravity solver (must have GRA/USG_GHOST_SIZE>=2) [0]
+OPT__GRAVITY_TYPE             1           # gravity source: (1=self-gravity, 2=external gravity, 3=both) ##2/3 for HYDRO ONLY##
+OPT__EXTERNAL_POT             0           # add the external potential (incompatible with OPT__GRAVITY_TYPE==2) [0] ##ELBDM ONLY##
+
+
+# initialization
+OPT__INIT                     1           # initialization option: (1=FUNCTION, 2=RESTART, 3=FILE->"UM_IC")
+RESTART_LOAD_NRANK            1           # number of parallel I/O (i.e., number of MPI ranks) for restart [1]
+OPT__RESTART_RESET            0           # reset some simulation status parameters (e.g., current step and time) during restart [0]
+OPT__INIT_RESTRICT            1           # restrict all data during the initialization [1]
+OPT__INIT_GRID_WITH_OMP       1           # enable OpenMP when assigning the initial condition of each grid patch [1]
+OPT__GPUID_SELECT            -1           # GPU ID selection mode: (-3=Laohu, -2=CUDA, -1=MPI rank, >=0=input) [-1]
+INIT_SUBSAMPLING_NCELL        0           # perform sub-sampling during initialization: (0=off, >0=# of sub-sampling cells) [0]
+
+
+# interpolation schemes: (-1=auto, 1=MinMod-3D, 2=MinMod-1D, 3=vanLeer, 4=CQuad, 5=Quad, 6=CQuar, 7=Quar)
+OPT__INT_TIME                 1           # perform "temporal" interpolation for OPT__DT_LEVEL == 2/3 [1]
+OPT__FLU_INT_SCHEME          -1           # ghost-zone fluid variables for the fluid solver [-1]
+OPT__REF_FLU_INT_SCHEME      -1           # newly allocated fluid variables during grid refinement [-1]
+OPT__POT_INT_SCHEME           5           # ghost-zone potential for the Poisson solver (only supports 4 & 5) [5]
+OPT__RHO_INT_SCHEME           4           # ghost-zone mass density for the Poisson solver [4]
+OPT__GRA_INT_SCHEME           5           # ghost-zone potential for the gravity solver (for UNSPLIT_GRAVITY as well) [5]
+OPT__REF_POT_INT_SCHEME       5           # newly allocated potential during grid refinement [5]
+INT_MONO_COEFF                2.0         # coefficient for ensuring the interpolation monotonicity (1.0~4.0) [2.0]
+
+
+# data dump
+OPT__OUTPUT_TOTAL             1           # output the simulation snapshot: (0=off, 1=HDF5, 2=C-binary) [1]
+OPT__OUTPUT_PART              0           # output a single line or slice: (0=off, 1=xy, 2=yz, 3=xz, 4=x, 5=y, 6=z, 7=diag) [0]
+OPT__OUTPUT_USER              0           # output the user-specified data -> edit "Output_User.cpp" [0]
+OPT__OUTPUT_PAR_TEXT          1           # output the particle text file [0] ##PARTICLE ONLY##
+OPT__OUTPUT_BASEPS            0           # output the base-level power spectrum [0]
+OPT__OUTPUT_BASE              0           # only output the base-level data [0] ##OPT__OUTPUT_PART ONLY##
+OPT__OUTPUT_POT               0           # output gravitational potential [0] ##OPT__OUTPUT_TOTAL ONLY##
+OPT__OUTPUT_PAR_DENS          1           # output the particle or total mass density on grids:
+                                          # (0=off, 1=particle mass density, 2=total mass density) [1] ##OPT__OUTPUT_TOTAL ONLY##
+OPT__OUTPUT_MODE              2           # (1=const step, 2=const dt, 3=dump table) -> edit "Input__DumpTable" for 3
+OUTPUT_STEP                   5           # output data every OUTPUT_STEP step ##OPT__OUTPUT_MODE==1 ONLY##
+OUTPUT_DT                     1.0e0       # output data every OUTPUT_DT time interval ##OPT__OUTPUT_MODE==2 ONLY##
+OUTPUT_PART_X                -1.0         # x coordinate for OPT__OUTPUT_PART [-1.0]
+OUTPUT_PART_Y                -1.0         # y coordinate for OPT__OUTPUT_PART [-1.0]
+OUTPUT_PART_Z                -1.0         # z coordinate for OPT__OUTPUT_PART [-1.0]
+INIT_DUMPID                  -1           # set the first dump ID (<0=auto) [-1]
+
+
+# miscellaneous
+OPT__VERBOSE                  0           # output the simulation progress in detail [0]
+OPT__TIMING_BARRIER          -1           # synchronize before timing -> more accurate, but may slow down the run (<0=auto) [-1]
+OPT__TIMING_BALANCE           0           # record the max/min elapsed time in various code sections for checking load balance [0]
+OPT__TIMING_MPI               0           # record the MPI bandwidth achieved in various code sections [0] ##LOAD_BALANCE ONLY##
+OPT__RECORD_MEMORY            1           # record the memory consumption [1]
+OPT__RECORD_PERFORMANCE       1           # record the code performance [1]
+OPT__MANUAL_CONTROL           1           # support manually dump data or stop run during the runtime
+                                          # (by generating the file DUMP_GAMER_DUMP or STOP_GAMER_STOP) [1]
+OPT__RECORD_USER              0           # record the user-specified info -> edit "Aux_RecordUser.cpp" [0]
+OPT__OPTIMIZE_AGGRESSIVE      0           # apply aggressive optimizations (experimental) [0]
+
+
+# checks
+OPT__CK_REFINE                0           # check the grid refinement [0]
+OPT__CK_PROPER_NESTING        0           # check the proper-nesting condition [0]
+OPT__CK_CONSERVATION          1           # check the conservation law [0]
+OPT__CK_NORMALIZE_PASSIVE     0           # check the normalization of passive scalars [0] ##OPT__NORMALIZE_PASSIVE ONLY##
+OPT__CK_RESTRICT              0           # check the data restriction [0]
+OPT__CK_FINITE                0           # check if all variables are finite [0]
+OPT__CK_PATCH_ALLOCATE        0           # check if all patches are properly allocated [0]
+OPT__CK_FLUX_ALLOCATE         0           # check if all flux arrays are properly allocated ##HYDRO and ELBDM ONLY## [0]
+OPT__CK_NEGATIVE              0           # check the negative values: (0=off, 1=density, 2=pressure and entropy, 3=both) [0] ##HYDRO ONLY##
+OPT__CK_MEMFREE               1.0         # check the free memory in GB (0=off, >0=threshold) [1.0]
+OPT__CK_PARTICLE              0           # check the particle allocation [0]

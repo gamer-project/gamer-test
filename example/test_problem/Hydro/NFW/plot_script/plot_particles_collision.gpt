@@ -1,0 +1,123 @@
+reset
+
+
+# target files
+# -----------------------------------------------------------
+FILE_IN_PREFIX  = '../Particle'
+FILE_IN_SUFFIX  = ''
+FILE_OUT_PREFIX = 'Fig__XXX'
+START_ID        = 0
+END_ID          = 50
+DELTA_ID        = 1
+BINARY          = 0     # (0/1) = ASCII/BINARY
+PAUSE           = -1.0  # <= 0.0 --> mouse
+VIEW            = 1     # (0/1/2/3) = 3D/xy/yz/xz
+FLOAT8          = 1     # (0/1) -> (single/double precision)
+
+
+# terminal
+# -----------------------------------------------------------
+ set term x11 enhanced
+#set term png enhanced crop size 1280,800
+#set term postscript eps enhanced color 'Helvetica' 16
+
+
+# plot style
+# -----------------------------------------------------------
+#set key reverse Left spacing 2 right
+#set format x "10^{%T}"
+#set format y "10^{%T}"
+#set pointsize 0.6
+#set xyplane at 0.0
+ set xrange [0.5:2.5]
+ set yrange [0.5:2.5]
+ set zrange [0.0:3.0]
+
+ if ( VIEW == 0 ) { set view equal xyz; set xlabel "x"; set ylabel "y"; set zlabel "z"; }
+ if ( VIEW == 1 ) { set size ratio -1 ; set xlabel "x"; set ylabel "y"; }
+ if ( VIEW == 2 ) { set size ratio -1 ; set xlabel "y"; set ylabel "z"; }
+ if ( VIEW == 3 ) { set size ratio -1 ; set xlabel "x"; set ylabel "z"; }
+
+
+# constants
+# -----------------------------------------------------------
+
+
+# set the output file extension automatically
+# -----------------------------------------------------------
+if      ( GPVAL_TERM eq 'pngcairo'   ) FILE_OUT_EXT='png'; \
+else if ( GPVAL_TERM eq 'postscript' ) FILE_OUT_EXT='eps'; \
+else if ( GPVAL_TERM ne 'x11'        ) print 'Unkown terminal for settting the output file extension !!'; quit
+
+
+# loop over all files
+# -----------------------------------------------------------
+print "Start plotting ..."
+
+do for [ID=START_ID:END_ID:DELTA_ID] {
+
+#  set the input and output filenames
+   ID1     = ID%10
+   ID2     = (ID%100)/10
+   ID3     = (ID%1000)/100
+   ID4     = ID/1000
+   FILE_IN = sprintf( '%s_00%d%d%d%d%s', FILE_IN_PREFIX, ID4, ID3, ID2, ID1, FILE_IN_SUFFIX )
+
+   if ( GPVAL_TERM ne 'x11' ) { set output sprintf( '%s_00%d%d%d%d.%s', FILE_OUT_PREFIX, ID4, ID3, ID2, ID1, FILE_OUT_EXT ) }
+
+
+#  load the physical time
+   RECORD__DUMP = '../Record__Dump'
+   NHEADER      = 1
+   LOAD_TIME    = sprintf( "awk '{if(NR==%d+%d) {print $2}}' %s", NHEADER, ID+1, RECORD__DUMP )
+   TIME         = system( LOAD_TIME )*1.0    # *1.0 --> convert string to number
+
+
+#  set title
+   set title sprintf( 'DataID %d%d%d%d (t = %5.2f)', ID4, ID3, ID2, ID1, TIME )
+   print sprintf( '   Plotting DataID %d%d%d%d (t = %5.2f) ...', ID4, ID3, ID2, ID1, TIME )
+
+
+#  plot
+   if ( BINARY ) {
+      if ( FLOAT8 == 1 ) {
+         if ( VIEW == 0 ) { splot FILE_IN binary format="%7double" u 3:4:5 w p pt 5 notitle }
+         if ( VIEW == 1 ) {  plot FILE_IN binary format="%7double" u 3:4   w p pt 5 notitle }
+         if ( VIEW == 2 ) {  plot FILE_IN binary format="%7double" u 4:5   w p pt 5 notitle }
+         if ( VIEW == 3 ) {  plot FILE_IN binary format="%7double" u 3:5   w p pt 5 notitle }
+      }
+      else {
+         if ( VIEW == 0 ) { splot FILE_IN binary format="%7float"  u 3:4:5 w p pt 5 notitle }
+         if ( VIEW == 1 ) {  plot FILE_IN binary format="%7float"  u 3:4   w p pt 5 notitle }
+         if ( VIEW == 2 ) {  plot FILE_IN binary format="%7float"  u 4:5   w p pt 5 notitle }
+         if ( VIEW == 3 ) {  plot FILE_IN binary format="%7float"  u 3:5   w p pt 5 notitle }
+      }
+   }
+   else {
+      if ( VIEW == 0 ) { splot FILE_IN u 3:4:5 w p pt 5 notitle }
+      if ( VIEW == 1 ) {  plot FILE_IN u 3:4 every ::0::9999      w p pt 5 ps 0.6 lc 1 notit, \
+                               FILE_IN u 3:4 every ::0::0         w p pt 7 ps 1.0 lc 4 notit, \
+                               FILE_IN u 3:4 every ::1::1         w p pt 7 ps 1.0 lc 5 notit, \
+                               FILE_IN u 3:4 every ::2::2         w p pt 7 ps 1.0 lc 3 notit, \
+                               FILE_IN u 3:4 every ::3::3         w p pt 7 ps 1.0 lc 7 notit, \
+                               FILE_IN u 3:4 every ::4::4         w p pt 7 ps 1.0 lc 8 notit, \
+                               FILE_IN u 3:4 every ::10000::19999 w p pt 5 ps 0.6 lc 2 notit, \
+                               FILE_IN u 3:4 every ::10000::10000 w p pt 9 ps 1.0 lc 4 notit, \
+                               FILE_IN u 3:4 every ::10001::10001 w p pt 9 ps 1.0 lc 5 notit, \
+                               FILE_IN u 3:4 every ::10002::10002 w p pt 9 ps 1.0 lc 3 notit, \
+                               FILE_IN u 3:4 every ::10003::10003 w p pt 9 ps 1.0 lc 7 notit, \
+                               FILE_IN u 3:4 every ::10004::10004 w p pt 9 ps 1.0 lc 8 notit }
+      if ( VIEW == 2 ) {  plot FILE_IN u 4:5   w p pt 5 notitle }
+      if ( VIEW == 3 ) {  plot FILE_IN u 3:5   w p pt 5 notitle }
+   }
+
+
+   if ( GPVAL_TERM eq 'x11' ) { if ( PAUSE <= 0.0 ) { pause mouse }   else { pause PAUSE } };
+
+} #do for [ID=START_ID:END_ID:DELTA_ID]
+
+
+print "Done";
+if ( GPVAL_TERM eq 'x11' ) { pause -1 };
+
+

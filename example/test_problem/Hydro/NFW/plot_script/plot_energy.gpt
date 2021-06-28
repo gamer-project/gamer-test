@@ -1,0 +1,27 @@
+#
+reset
+
+
+# terminal
+# -----------------------------------------------------------
+set term x11 enhanced
+#set term png enhanced crop size 1280,800
+#set term postscript eps enhanced color 'Helvetica' 16
+
+
+# plot style
+# -----------------------------------------------------------
+#set key reverse Left spacing 2 right
+#set format x "10^{%T}"
+set log y
+set xlabel "Time"
+set ylabel "Relative energy error"
+set format y "10^{%T}"
+#set xrange [0.0:20.0]
+set yrange [1.0e-5:1.0e-1]
+
+plot "../Record__Conservation" u 1:(abs($26)) w l notit
+
+if ( GPVAL_TERM eq 'x11' ) { pause -1 };
+
+
