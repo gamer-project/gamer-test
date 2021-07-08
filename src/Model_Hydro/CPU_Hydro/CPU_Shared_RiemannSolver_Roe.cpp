@@ -163,14 +163,9 @@ void Hydro_RiemannSolver_Roe( const int XYZ, real Flux_Out[], const real L_In[],
    HR    = _RhoR*( R[4] + PR );
 #  endif
 
-#  ifdef CHECK_NEGATIVE_IN_FLUID
-   if ( Hydro_CheckNegative(L[0]) )
-      printf( "ERROR : invalid density (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              L[0], __FILE__, __LINE__, __FUNCTION__ );
-
-   if ( Hydro_CheckNegative(R[0]) )
-      printf( "ERROR : invalid density (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              R[0], __FILE__, __LINE__, __FUNCTION__ );
+#  ifdef CHECK_UNPHYSICAL_IN_FLUID
+   Hydro_CheckUnphysical( NULL, NULL, &L[0], NULL, "density", __FILE__, __FUNCTION__, __LINE__, true );
+   Hydro_CheckUnphysical( NULL, NULL, &R[0], NULL, "density", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
 
    RhoL_sqrt       = SQRT( L[0] );
@@ -207,10 +202,8 @@ void Hydro_RiemannSolver_Roe( const int XYZ, real Flux_Out[], const real L_In[],
    Y        *= Gamma_m2;
    Bn_star   = SQRT( Gamma_m1 - Y )*Bn;
 
-#  ifdef CHECK_NEGATIVE_IN_FLUID
-   if ( Hydro_CheckNegative(Gamma_m1-Y) )
-      printf( "ERROR : invalid Gamma_m1-Y (%14.7e, Gamma_m1 %14.7e, Y %14.7e) at file <%s>, line <%d>, function <%s>\n",
-              Gamma_m1-Y, Gamma_m1, Y, __FILE__, __LINE__, __FUNCTION__ );
+#  ifdef CHECK_UNPHYSICAL_IN_FLUID
+   Hydro_CheckUnphysical( NULL, NULL, &Gamma_m1-Y, NULL, "Gamma_m1-Y", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
 
    if ( Bn == ZERO ) {
@@ -246,10 +239,8 @@ void Hydro_RiemannSolver_Roe( const int XYZ, real Flux_Out[], const real L_In[],
 #  ifdef MHD
    a2 -= X;
 #  endif
-#  ifdef CHECK_NEGATIVE_IN_FLUID
-   if ( Hydro_CheckNegative(a2) )
-      printf( "ERROR : invalid a2 (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              a2, __FILE__, __LINE__, __FUNCTION__ );
+#  ifdef CHECK_UNPHYSICAL_IN_FLUID
+   Hydro_CheckUnphysical( NULL, NULL, &a2, NULL, "a2", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
    a  = SQRT( a2 );
 
@@ -310,14 +301,9 @@ void Hydro_RiemannSolver_Roe( const int XYZ, real Flux_Out[], const real L_In[],
       alpha_s = ZERO;
    }
    else {
-#     ifdef CHECK_NEGATIVE_IN_FLUID
-      if ( Hydro_CheckNegative(a2_min_Cs2) )
-         printf( "ERROR : invalid a2_min_Cs2 (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-                 a2_min_Cs2, __FILE__, __LINE__, __FUNCTION__ );
-
-      if ( Hydro_CheckNegative(Cf2_min_a2) )
-         printf( "ERROR : invalid Cf2_min_a2 (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-                 Cf2_min_a2, __FILE__, __LINE__, __FUNCTION__ );
+#     ifdef CHECK_UNPHYSICAL_IN_FLUID
+      Hydro_CheckUnphysical( NULL, NULL, &a2_min_Cs2, NULL, "a2_min_Cs2", __FILE__, __FUNCTION__, __LINE__, true );
+      Hydro_CheckUnphysical( NULL, NULL, &Cf2_min_a2, NULL, "Cf2_min_a2", __FILE__, __FUNCTION__, __LINE__, true );
 #     endif
 
       const real _Cf2_min_Cs2 = ONE/Cf2_min_Cs2;

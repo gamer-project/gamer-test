@@ -64,8 +64,7 @@ void EoS_SetAuxArray_Isothermal( double AuxArray_Flt[], int AuxArray_Int[] )
    }
 
 #  ifdef GAMER_DEBUG
-   if ( Hydro_CheckNegative(AuxArray_Flt[0]) )
-      printf( "ERROR : invalid sound speed squared (%13.7e in code unit) in %s() !!\n", AuxArray_Flt[0], __FUNCTION__ );
+   Hydro_CheckUnphysical( NULL, NULL, &AuxArray_Flt[0], NULL, "sound speed squared", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
 
 } // FUNCTION : EoS_SetAuxArray_Isothermal
@@ -109,9 +108,7 @@ static real EoS_DensEint2Pres_Isothermal( const real Dens, const real Eint, cons
 #  ifdef GAMER_DEBUG
    if ( AuxArray_Flt == NULL )   printf( "ERROR : AuxArray_Flt == NULL in %s !!\n", __FUNCTION__ );
 
-   if ( Hydro_CheckNegative(Dens) )
-      printf( "ERROR : invalid input density (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              Dens, __FILE__, __LINE__, __FUNCTION__ );
+   Hydro_CheckUnphysical( NULL, NULL, &Dens, NULL, "input density", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
 
 
@@ -147,9 +144,7 @@ static real EoS_DensPres2Eint_Isothermal( const real Dens, const real Pres, cons
 
 // check
 #  ifdef GAMER_DEBUG
-   if ( Hydro_CheckNegative(Pres) )
-      printf( "ERROR : invalid input pressure (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              Pres, __FILE__, __LINE__, __FUNCTION__ );
+   Hydro_CheckUnphysical( NULL, NULL, &Pres, NULL, "input pressure", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
 
 
@@ -261,9 +256,7 @@ static real EoS_DensTemp2Pres_Isothermal( const real Dens, const real Temp, cons
 #  ifdef GAMER_DEBUG
    if ( AuxArray_Flt == NULL )   printf( "ERROR : AuxArray_Flt == NULL in %s !!\n", __FUNCTION__ );
 
-   if ( Hydro_CheckNegative(Dens) )
-      printf( "ERROR : invalid input density (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              Dens, __FILE__, __LINE__, __FUNCTION__ );
+   Hydro_CheckUnphysical( NULL, NULL, &Dens, NULL, "input density", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
 
 

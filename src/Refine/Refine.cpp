@@ -723,10 +723,10 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
 
 #        else // #if ( MODEL == ELBDM )
 
-         for (int v=0; v<NCOMP_TOTAL; v++)
-         Interpolate( &Flu_CData[v][0][0][0], CSize_Flu3, CStart_Flu, CRange_CC, &Flu_FData[v][0][0][0],
-                      FSize_CC3, FStart_CC, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_No, Monotonicity,
-                      INT_OPP_SIGN_0TH_ORDER );
+         InterpolateWithAdaptiveMinmod( &Flu_CData[0][0][0][0], CSize_Flu3, CStart_Flu, CRange_CC, &Flu_FData[0][0][0][0],
+                                        FSize_CC3, FStart_CC, NCOMP_TOTAL, _TOTAL, OPT__REF_FLU_INT_SCHEME,
+                                        PhaseUnwrapping_No, Monotonicity,
+                                        INT_OPP_SIGN_0TH_ORDER, false );
 
 #        endif // #if ( MODEL == ELBDM ) ... else
 
@@ -738,7 +738,7 @@ void Refine( const int lv, const UseLBFunc_t UseLBFunc )
          if ( UsePot )
          Interpolate( &Pot_CData[0][0][0], CSize_Pot_Temp, CStart_Pot, CRange_CC, &Pot_FData[0][0][0],
                       FSize_CC3, FStart_CC, 1, OPT__REF_POT_INT_SCHEME, PhaseUnwrapping_No, &Monotonicity_No,
-                      IntOppSign0thOrder_No );
+                      INT_MONO_COEFF, IntOppSign0thOrder_No );
 #        endif
 
 

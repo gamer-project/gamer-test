@@ -2120,7 +2120,7 @@ void FillIn_SymConst( SymConst_t &SymConst )
 #  if   ( MODEL == HYDRO )
    SymConst.Flu_BlockSize_x      = FLU_BLOCK_SIZE_X;
    SymConst.Flu_BlockSize_y      = FLU_BLOCK_SIZE_Y;
-#  ifdef CHECK_NEGATIVE_IN_FLUID
+#  ifdef CHECK_UNPHYSICAL_IN_FLUID
    SymConst.CheckNegativeInFluid = 1;
 #  else
    SymConst.CheckNegativeInFluid = 0;

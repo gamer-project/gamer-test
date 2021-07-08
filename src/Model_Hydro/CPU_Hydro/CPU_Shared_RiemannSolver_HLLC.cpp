@@ -67,14 +67,9 @@ void Hydro_RiemannSolver_HLLC( const int XYZ, real Flux_Out[], const real L_In[]
    Hydro_Rotate3D( L, XYZ, true, MAG_OFFSET );
    Hydro_Rotate3D( R, XYZ, true, MAG_OFFSET );
 
-#  ifdef CHECK_NEGATIVE_IN_FLUID
-   if ( Hydro_CheckNegative(L[0]) )
-      printf( "ERROR : invalid density (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              L[0], __FILE__, __LINE__, __FUNCTION__ );
-
-   if ( Hydro_CheckNegative(R[0]) )
-      printf( "ERROR : invalid density (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              R[0], __FILE__, __LINE__, __FUNCTION__ );
+#  ifdef CHECK_UNPHYSICAL_IN_FLUID
+   Hydro_CheckUnphysical( NULL, NULL, &L[0], NULL, "density",  __FILE__, __FUNCTION__, __LINE__, true );
+   Hydro_CheckUnphysical( NULL, NULL, &R[0], NULL, "density", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
 
 
@@ -99,14 +94,9 @@ void Hydro_RiemannSolver_HLLC( const int XYZ, real Flux_Out[], const real L_In[]
    Cs_L  = SQRT(  EoS_DensPres2CSqr( L[0], P_L, L+NCOMP_FLUID, EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table, NULL )  );
    Cs_R  = SQRT(  EoS_DensPres2CSqr( R[0], P_R, R+NCOMP_FLUID, EoS_AuxArray_Flt, EoS_AuxArray_Int, EoS_Table, NULL )  );
 
-#  ifdef CHECK_NEGATIVE_IN_FLUID
-   if ( Hydro_CheckNegative(P_L) )
-      printf( "ERROR : invalid pressure (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              P_L, __FILE__, __LINE__, __FUNCTION__ );
-
-   if ( Hydro_CheckNegative(P_R) )
-      printf( "ERROR : invalid pressure (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              P_R, __FILE__, __LINE__, __FUNCTION__ );
+#  ifdef CHECK_UNPHYSICAL_IN_FLUID
+   Hydro_CheckUnphysical( NULL, NULL, &P_R, NULL, "pressure", __FILE__, __FUNCTION__, __LINE__, true );
+   Hydro_CheckUnphysical( NULL, NULL, &P_L, NULL, "pressure", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
 
 
@@ -151,10 +141,8 @@ void Hydro_RiemannSolver_HLLC( const int XYZ, real Flux_Out[], const real L_In[]
    Cs2_Roe  = Gamma*TempPres/TempRho;
    Cs_Roe   = SQRT( Cs2_Roe );
 
-#  ifdef CHECK_NEGATIVE_IN_FLUID
-   if ( Hydro_CheckNegative(Cs2_Roe) )
-      printf( "ERROR : invalid Cs2_Roe (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              Cs2_Roe, __FILE__, __LINE__, __FUNCTION__ );
+#  ifdef CHECK_UNPHYSICAL_IN_FLUID
+   Hydro_CheckUnphysical( NULL, NULL, &Cs2_Roe, NULL, "Cs2_Roe", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
 
 // maximum and minimum eigenvalues
@@ -204,14 +192,9 @@ void Hydro_RiemannSolver_HLLC( const int XYZ, real Flux_Out[], const real L_In[]
    W_L = u_L - Cs_L*q_L;
    W_R = u_R + Cs_R*q_R;
 
-#  ifdef CHECK_NEGATIVE_IN_FLUID
-   if ( Hydro_CheckNegative(q_L) )
-      printf( "ERROR : invalid q_L (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              q_L, __FILE__, __LINE__, __FUNCTION__ );
-
-   if ( Hydro_CheckNegative(q_R) )
-      printf( "ERROR : invalid q_R (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-              q_R, __FILE__, __LINE__, __FUNCTION__ );
+#  ifdef CHECK_UNPHYSICAL_IN_FLUID
+   Hydro_CheckUnphysical( NULL, NULL, &q_L, NULL, "q_L", __FILE__, __FUNCTION__, __LINE__, true );
+   Hydro_CheckUnphysical( NULL, NULL, &q_R, NULL, "q_R", __FILE__, __FUNCTION__, __LINE__, true );
 #  endif
 
 

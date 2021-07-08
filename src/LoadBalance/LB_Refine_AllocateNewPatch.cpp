@@ -897,10 +897,10 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
 
 #  else // #if ( MODEL == ELBDM )
 
-   for (int v=0; v<NCOMP_TOTAL; v++)
-   Interpolate( CData_Flu+v*CSize_Flu1v, CSize_Flu3, CStart_Flu, CRange_CC, &FData_Flu[v][0][0][0],
-                FSize_CC3, FStart_CC, 1, OPT__REF_FLU_INT_SCHEME, PhaseUnwrapping_No, Monotonicity,
-                INT_OPP_SIGN_0TH_ORDER );
+   InterpolateWithAdaptiveMinmod( CData_Flu, CSize_Flu3, CStart_Flu, CRange_CC, &FData_Flu[0][0][0][0],
+                                  FSize_CC3, FStart_CC, NCOMP_TOTAL, _TOTAL, OPT__REF_FLU_INT_SCHEME,
+                                  PhaseUnwrapping_No, Monotonicity,
+                                  INT_OPP_SIGN_0TH_ORDER, false );
 
 #  endif // #if ( MODEL == ELBDM ) ... else
 
@@ -917,7 +917,7 @@ int AllocateSonPatch( const int FaLv, const int *Cr, const int PScale, const int
 
    Interpolate( CData_Pot, CSize_Pot3, CStart_Pot, CRange_CC, &FData_Pot[0][0][0],
                 FSize_CC3, FStart_CC, 1, OPT__REF_POT_INT_SCHEME, PhaseUnwrapping_No, &Monotonicity_No,
-                IntOppSign0thOrder_No );
+                INT_MONO_COEFF, IntOppSign0thOrder_No );
 #  endif
 
 

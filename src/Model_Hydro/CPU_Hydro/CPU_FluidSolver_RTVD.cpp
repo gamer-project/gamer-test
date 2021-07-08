@@ -46,15 +46,15 @@ static void TransposeXZ( real u[][ FLU_NXT*FLU_NXT*FLU_NXT ] );
 //                EoS           : EoS object
 //-------------------------------------------------------------------------------------------------------
 void CPU_FluidSolver_RTVD(
-   real Flu_Array_In [][NCOMP_TOTAL][ CUBE(FLU_NXT) ],
-   real Flu_Array_Out[][NCOMP_TOTAL][ CUBE(PS2) ],
-   real Flux_Array   [][9][NCOMP_TOTAL][ SQR(PS2) ],
-   const double Corner_Array[][3],
-   const real Pot_Array_USG[][ CUBE(USG_NXT_F) ],
-   const int NPatchGroup, const real dt, const real dh,
-   const bool StoreFlux, const bool XYZ,
-   const real MinDens, const real MinPres, const real MinEint,
-   const EoS_t EoS )
+     real Flu_Array_In [][NCOMP_TOTAL][ CUBE(FLU_NXT) ],
+     real Flu_Array_Out[][NCOMP_TOTAL][ CUBE(PS2) ],
+     real Flux_Array   [][9][NCOMP_TOTAL][ SQR(PS2) ],
+     const double Corner_Array[][3],
+     const real Pot_Array_USG[][ CUBE(USG_NXT_F) ],
+     const int NPatchGroup, const real dt, const real dh,
+     const bool StoreFlux, const bool XYZ,
+     const real MinDens, const real MinPres, const real MinEint,
+     const EoS_t EoS )
 {
 
    if ( XYZ )
@@ -230,14 +230,9 @@ void CPU_AdvanceX( real u[][ CUBE(FLU_NXT) ], const real dt, const real dx,
                                 CheckMinPres_Yes, MinPres, NULL_REAL, EoS->DensEint2Pres_FuncPtr,
                                 EoS->AuxArrayDevPtr_Flt, EoS->AuxArrayDevPtr_Int, EoS->Table, NULL );
 
-#        ifdef CHECK_NEGATIVE_IN_FLUID
-         if ( Hydro_CheckNegative(p) )
-            Aux_Message( stderr, "ERROR : invalid pressure (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-                         p, __FILE__, __LINE__, __FUNCTION__ );
-
-         if ( Hydro_CheckNegative(ux[0][i]) )
-            Aux_Message( stderr, "ERROR : invalid density (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-                         ux[0][i], __FILE__, __LINE__, __FUNCTION__ );
+#        ifdef CHECK_UNPHYSICAL_IN_FLUID
+         Hydro_CheckUnphysical( NULL, NULL, &p,        NULL, "pressure", __FILE__, __FUNCTION__, __LINE__, true );
+         Hydro_CheckUnphysical( NULL, NULL, &ux[0][i], NULL, "density",  __FILE__, __FUNCTION__, __LINE__, true );
 #        endif
 
          c    = FABS( vx ) + SQRT(  EoS->DensPres2CSqr_FuncPtr( ux[0][i], p, Passive, EoS->AuxArrayDevPtr_Flt,
@@ -297,14 +292,9 @@ void CPU_AdvanceX( real u[][ CUBE(FLU_NXT) ], const real dt, const real dx,
                                 CheckMinPres_Yes, MinPres, NULL_REAL, EoS->DensEint2Pres_FuncPtr,
                                 EoS->AuxArrayDevPtr_Flt, EoS->AuxArrayDevPtr_Int, EoS->Table, NULL );
 
-#        ifdef CHECK_NEGATIVE_IN_FLUID
-         if ( Hydro_CheckNegative(p) )
-            Aux_Message( stderr, "ERROR : invalid pressure (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-                         p, __FILE__, __LINE__, __FUNCTION__ );
-
-         if ( Hydro_CheckNegative(u_half[0][i]) )
-            Aux_Message( stderr, "ERROR : invalid density (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-                         u_half[0][i], __FILE__, __LINE__, __FUNCTION__ );
+#        ifdef CHECK_UNPHYSICAL_IN_FLUID
+         Hydro_CheckUnphysical( NULL, NULL, &p,            NULL, "pressure", __FILE__, __FUNCTION__, __LINE__, true );
+         Hydro_CheckUnphysical( NULL, NULL, &u_half[0][i], NULL, "density",  __FILE__, __FUNCTION__, __LINE__, true );
 #        endif
 
          c    = FABS( vx ) + SQRT(  EoS->DensPres2CSqr_FuncPtr( u_half[0][i], p, Passive, EoS->AuxArrayDevPtr_Flt,
@@ -384,16 +374,11 @@ void CPU_AdvanceX( real u[][ CUBE(FLU_NXT) ], const real dt, const real dx,
 
 
 //    (b6). check negative density and energy
-#     ifdef CHECK_NEGATIVE_IN_FLUID
+#     ifdef CHECK_UNPHYSICAL_IN_FLUID
       for (int i=3; i<FLU_NXT-3; i++)
       {
-         if ( Hydro_CheckNegative(ux[0][i]) )
-            Aux_Message( stderr, "ERROR : invalid density (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-                         ux[0][i], __FILE__, __LINE__, __FUNCTION__ );
-
-         if ( Hydro_CheckNegative(ux[4][i]) )
-            Aux_Message( stderr, "ERROR : invalid energy (%14.7e) at file <%s>, line <%d>, function <%s>\n",
-                         ux[4][i], __FILE__, __LINE__, __FUNCTION__ );
+         Hydro_CheckUnphysical( NULL, NULL, &ux[0][i], NULL, "density", __FILE__, __FUNCTION__, __LINE__, true );
+         Hydro_CheckUnphysical( NULL, NULL, &ux[4][i], NULL, "energy",  __FILE__, __FUNCTION__, __LINE__, true );
       }
 #     endif
 

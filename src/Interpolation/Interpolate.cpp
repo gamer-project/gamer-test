@@ -52,6 +52,7 @@ void Int_Quartic   (       real CData[], const int CSize[3], const int CStart[3]
 //                UnwrapPhase     : Unwrap phase when OPT__INT_PHASE is on (for ELBDM only)
 //                Monotonic       : Ensure that all interpolation results are monotonic
 //                                  --> Useful for interpolating positive-definite variables, such as density, energy, ...
+//                IntMonoCoeff    : min-mod coefficient for spatial interpolations
 //                OppSign0thOrder : Apply 0th-order interpolation if the values to be interpolated change
 //                                  signs in adjacent cells
 //                                  --> See Int_MinMod1D() for details
@@ -59,7 +60,7 @@ void Int_Quartic   (       real CData[], const int CSize[3], const int CStart[3]
 void Interpolate( real CData[], const int CSize[3], const int CStart[3], const int CRange[3],
                   real FData[], const int FSize[3], const int FStart[3],
                   const int NComp, const IntScheme_t IntScheme, const bool UnwrapPhase, const bool Monotonic[],
-                  const bool OppSign0thOrder )
+                  const real IntMonoCoeff, const bool OppSign0thOrder )
 {
 
 // check
@@ -112,22 +113,22 @@ void Interpolate( real CData[], const int CSize[3], const int CStart[3], const i
          break;
 
       case INT_CQUAD :
-         Int_CQuadratic( CData, CSize, CStart, CRange, FData, FSize, FStart, NComp, UnwrapPhase, Monotonic, INT_MONO_COEFF,
+         Int_CQuadratic( CData, CSize, CStart, CRange, FData, FSize, FStart, NComp, UnwrapPhase, Monotonic, IntMonoCoeff,
                          OppSign0thOrder );
          break;
 
       case INT_QUAD :
-         Int_Quadratic ( CData, CSize, CStart, CRange, FData, FSize, FStart, NComp, UnwrapPhase, Monotonic, INT_MONO_COEFF,
+         Int_Quadratic ( CData, CSize, CStart, CRange, FData, FSize, FStart, NComp, UnwrapPhase, Monotonic, IntMonoCoeff,
                          OppSign0thOrder );
          break;
 
       case INT_CQUAR :
-         Int_CQuartic  ( CData, CSize, CStart, CRange, FData, FSize, FStart, NComp, UnwrapPhase, Monotonic, INT_MONO_COEFF,
+         Int_CQuartic  ( CData, CSize, CStart, CRange, FData, FSize, FStart, NComp, UnwrapPhase, Monotonic, IntMonoCoeff,
                          OppSign0thOrder );
          break;
 
       case INT_QUAR :
-         Int_Quartic   ( CData, CSize, CStart, CRange, FData, FSize, FStart, NComp, UnwrapPhase, Monotonic, INT_MONO_COEFF,
+         Int_Quartic   ( CData, CSize, CStart, CRange, FData, FSize, FStart, NComp, UnwrapPhase, Monotonic, IntMonoCoeff,
                          OppSign0thOrder );
          break;
 

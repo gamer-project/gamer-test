@@ -374,10 +374,10 @@ void Aux_TakeNote()
 #     endif
 
 #     if   ( MODEL == HYDRO )
-#     ifdef CHECK_NEGATIVE_IN_FLUID
-      fprintf( Note, "CHECK_NEGATIVE_IN_FLUID         ON\n" );
+#     ifdef CHECK_UNPHYSICAL_IN_FLUID
+      fprintf( Note, "CHECK_UNPHYSICAL_IN_FLUID       ON\n" );
 #     else
-      fprintf( Note, "CHECK_NEGATIVE_IN_FLUID         OFF\n" );
+      fprintf( Note, "CHECK_UNPHYSICAL_IN_FLUID       OFF\n" );
 #     endif
 
 #     ifdef CHAR_RECONSTRUCTION
